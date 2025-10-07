@@ -1,0 +1,270 @@
+# ===================================
+# Dependencies
+# ===================================
+node_modules/
+.pnp
+.pnp.js
+.yarn/install-state.gz
+jspm_packages/
+bower_components/
+
+# ===================================
+# Build & Production
+# ===================================
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# ===================================
+# Environment & Secrets
+# ===================================
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+*.pem
+*.key
+*.cert
+
+# ===================================
+# Database
+# ===================================
+# Prisma
+apps/backend/prisma/migrations/*
+!apps/backend/prisma/migrations/.gitkeep
+apps/backend/node_modules/.prisma/
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Database backups
+*.sql
+*.dump
+backup_*.sql
+backup_*.dump
+
+# PostgreSQL
+*.pgdump
+pg_data/
+
+# ===================================
+# Testing & Coverage
+# ===================================
+coverage/
+.nyc_output/
+*.lcov
+test-results/
+playwright-report/
+apps/backend/playwright-report/
+apps/backend/test-results/
+apps/frontend/playwright-report/
+apps/frontend/test-results/
+screenshots/
+apps/backend/screenshots/
+e2e-results/
+junit.xml
+test-report.html
+
+# ===================================
+# Logs & Debug
+# ===================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.pnpm-debug.log*
+debug.log
+error.log
+
+# ===================================
+# IDEs & Editors
+# ===================================
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# JetBrains (WebStorm, IntelliJ, etc.)
+.idea/
+*.iml
+*.iws
+*.ipr
+.idea_modules/
+
+# Vim
+*.swp
+*.swo
+*~
+.vim/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Emacs
+*~
+\#*\#
+.\#*
+.emacs.desktop
+.emacs.desktop.lock
+
+# ===================================
+# OS Files
+# ===================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+.directory
+.Trash-*
+
+# ===================================
+# Docker & Container
+# ===================================
+docker-compose.override.yml
+.docker/
+*.dockerignore
+docker-data/
+postgres-data/
+redis-data/
+minio-data/
+
+# ===================================
+# Temporary & Cache Files
+# ===================================
+tmp/
+temp/
+*.tmp
+*.temp
+*.cache
+.cache/
+.parcel-cache/
+.turbo/
+.vercel/
+.vite/
+.eslintcache
+.stylelintcache
+
+# ===================================
+# Package Manager Locks (Optional)
+# ===================================
+# Uncomment if you want to ignore lock files
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# ===================================
+# Frontend Specific (Next.js)
+# ===================================
+.next/
+out/
+.swc/
+.contentlayer/
+public/sw.js
+public/sw.js.map
+public/workbox-*.js
+public/workbox-*.js.map
+.vercel
+*.tsbuildinfo
+storybook-static/
+
+# ===================================
+# Backend Specific
+# ===================================
+# Uploads & Media
+uploads/
+public/uploads/
+static/uploads/
+
+# Generated files
+generated/
+apps/backend/generated/
+
+# ===================================
+# Agent Specific
+# ===================================
+agent/dist/
+agent/build/
+agent/.config/
+*.config.json
+
+# ===================================
+# Documentation Build
+# ===================================
+apps/docs/.vitepress/dist/
+apps/docs/.vitepress/cache/
+
+# ===================================
+# Misc
+# ===================================
+*.orig
+*.rej
+.history/
+.backup/
+*.bak
+*.swn
+
+# Analytics & Monitoring
+.lighthouseci/
+
+# Sentry
+.sentryclirc
+
+# Turborepo
+.turbo/
+
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# MacOS Network
+.Trashes
+.fseventsd
+.Spotlight-V100
+
+# ===================================
+# Custom Project Files
+# ===================================
+# Add your custom ignores here
+TODO.md
+NOTES.md
+scratch/
+sandbox/
