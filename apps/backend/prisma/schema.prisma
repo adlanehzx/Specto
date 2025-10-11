@@ -1,0 +1,926 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String?  @map("password_hash") // Optional for OAuth users
+  
+  // OAuth fields
+  provider     String?  // "google", "slack", "email"
+  providerId   String?  @map("provider_id") // OAuth provider user ID
+  googleId     String?  @unique @map("google_id")
+  githubId     String?  @unique @map("github_id")
+  slackId      String?  @unique @map("slack_id")
+  displayName  String?  @map("display_name") // From OAuth
+  picture      String?  // Profile picture URL from OAuth
+  
+  createdAt    DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  tests        Test[]
+  tunnels      Tunnel[]
+  notifications Notification[]
+  preferences   UserPreferences?
+  createdProjects Project[] @relation("CreatedProjects")
+  projectMemberships ProjectMember[]
+  apiTests     ApiTest[]
+  smokeTests   SmokeTest[]
+  unitTests    UnitTest[]
+  performanceTests PerformanceTest[]
+  securityTests SecurityTest[]
+
+  @@index([googleId])
+  @@index([githubId])
+  @@index([slackId])
+  @@index([provider, providerId])
+  @@map("users")
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?  @db.Text
+  createdBy   String   @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  creator     User           @relation("CreatedProjects", fields: [createdBy], references: [id], onDelete: Cascade)
+  members     ProjectMember[]
+  tests       Test[]
+  apiTests    ApiTest[]
+  smokeTests  SmokeTest[]
+  unitTests   UnitTest[]
+  functionAnalyses FunctionAnalysis[]
+  performanceTests PerformanceTest[]
+  securityTests SecurityTest[]
+  
+  @@index([createdBy])
+  @@map("projects")
+}
+
+model ProjectMember {
+  id         String   @id @default(cuid())
+  projectId  String   @map("project_id")
+  userId     String   @map("user_id")
+  role       String   // "owner", "admin", "editor", "viewer"
+  invitedBy  String?  @map("invited_by")
+  invitedAt  DateTime @default(now()) @map("invited_at")
+  acceptedAt DateTime? @map("accepted_at")
+  status     String   @default("pending") // "pending", "accepted", "rejected"
+  
+  // Relations
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
+  @@index([status])
+  @@map("project_members")
+}
+
+model Test {
+  id             String    @id @default(cuid())
+  userId         String    @map("user_id")
+  projectId      String?   @map("project_id")
+  tunnelId       String?   @map("tunnel_id") // Reference to Tunnel table
+  url            String    // URL de la page à tester (peut être locale)
+  prompt         String    @db.Text
+  code           String    @db.Text
+  keepTunnelOpen Boolean   @default(false) @map("keep_tunnel_open") // Garder le tunnel ouvert après le test
+  createdAt      DateTime  @default(now()) @map("created_at")
+  
+  // Scheduling fields
+  isScheduled    Boolean   @default(false) @map("is_scheduled") // Test planifié ou manuel
+  frequency      String?   // "hourly", "daily", "weekly", "monthly", null si non récurrent
+  nextRunAt      DateTime? @map("next_run_at") // Prochaine exécution planifiée
+  lastRunAt      DateTime? @map("last_run_at") // Dernière exécution
+  isActive       Boolean   @default(true) @map("is_active") // Pour désactiver temporairement un test planifié
+
+  // Retry configuration
+  maxRetries     Int       @default(3) @map("max_retries") // Nombre maximum de retries en cas d'échec
+  retryDelay     Int       @default(1000) @map("retry_delay") // Délai initial entre les retries en ms
+
+  // Assertions configuration
+  assertions     Json?     // Configuration des assertions à exécuter (format JSON)
+
+  // Auto-healing configuration
+  autoHealingEnabled Boolean @default(true) @map("auto_healing_enabled") // Activer la correction automatique
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  tunnel    Tunnel?  @relation(fields: [tunnelId], references: [id], onDelete: SetNull)
+  results   Result[]
+  healingAttempts HealingAttempt[]
+  flakinessReport FlakinessReport?
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([tunnelId])
+  @@index([isScheduled, nextRunAt, isActive]) // Pour rechercher les tests à exécuter
+  @@map("tests")
+}
+
+model Result {
+  id            String   @id @default(cuid())
+  testId        String   @map("test_id")
+  status        String   // "success", "failure", "error", "pending"
+  logs          String?  @db.Text
+  screenshotUrl String?  @map("screenshot_url")
+  duration      Int?     // Duration in milliseconds
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  // Retry tracking
+  retryCount    Int      @default(0) @map("retry_count") // Nombre de retries effectués
+  isRetry       Boolean  @default(false) @map("is_retry") // Indique si c'est un retry
+  originalResultId String? @map("original_result_id") // ID du résultat initial si c'est un retry
+
+  // Relations
+  test          Test       @relation(fields: [testId], references: [id], onDelete: Cascade)
+  assertions    Assertion[]
+  healingAttempts         HealingAttempt[] @relation("OriginalResult")
+  validatedHealingAttempts HealingAttempt[] @relation("ValidationResult")
+
+  @@index([testId])
+  @@map("results")
+}
+
+model Assertion {
+  id            String   @id @default(cuid())
+  resultId      String   @map("result_id")
+  type          String   // "text", "element-visible", "attribute", "url", "count", "input-value"
+  selector      String?  // Sélecteur CSS (null pour type "url")
+  attribute     String?  // Nom de l'attribut (pour type "attribute")
+  expectedValue String   @map("expected_value") @db.Text
+  actualValue   String?  @map("actual_value") @db.Text
+  passed        Boolean  // true si assertion réussie, false sinon
+  errorMessage  String?  @map("error_message") @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  // Relations
+  result        Result   @relation(fields: [resultId], references: [id], onDelete: Cascade)
+
+  @@index([resultId])
+  @@map("assertions")
+}
+
+model Tunnel {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  url       String    // URL publique du tunnel Cloudflare (ex: https://abc123.trycloudflare.com)
+  port      Int       // Port local (ex: 3000, 4000)
+  status    String    @default("active") // "active", "closed"
+  agentId   String?   @map("agent_id") // ID de l'agent qui gère ce tunnel
+  createdAt DateTime  @default(now()) @map("created_at")
+  closedAt  DateTime? @map("closed_at") // Date de fermeture du tunnel
+
+  // Relations
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tests     Test[]
+
+  @@index([userId])
+  @@index([userId, port, status]) // Pour rechercher tunnel actif par port
+  @@map("tunnels")
+}
+
+model HealingAttempt {
+  id              String   @id @default(cuid())
+  testId          String   @map("test_id")
+  resultId        String   @map("result_id")
+  
+  // Contexte de l'échec
+  errorType       String   @map("error_type")  // 'selector', 'timeout', 'assertion', 'navigation', 'visibility', 'race-condition'
+  errorMessage    String   @map("error_message") @db.Text
+  originalCode    String   @map("original_code") @db.Text
+  failedLine      Int?     @map("failed_line")  // Ligne qui a échoué
+  
+  // Tentative de correction
+  healedCode      String?  @map("healed_code") @db.Text
+  changes         Json?    // Détails des changements appliqués (array d'objets)
+  llmPrompt       String?  @map("llm_prompt") @db.Text
+  llmResponse     String?  @map("llm_response") @db.Text
+  
+  // Résultat
+  status          String   // 'pending', 'success', 'failed', 'manual-review'
+  validationResultId String? @map("validation_result_id")  // Result après healing
+  confidence      Float?   // 0-1, confiance du LLM dans le fix
+  
+  // Métadonnées
+  healedAt        DateTime? @map("healed_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  test            Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  result          Result   @relation("OriginalResult", fields: [resultId], references: [id], onDelete: Cascade)
+  validationResult Result? @relation("ValidationResult", fields: [validationResultId], references: [id], onDelete: SetNull)
+  
+  @@index([testId])
+  @@index([resultId])
+  @@index([status])
+  @@map("healing_attempts")
+}
+
+model FlakinessReport {
+  id              String   @id @default(cuid())
+  testId          String   @map("test_id") @unique
+  
+  // Métriques de base
+  totalRuns       Int      @map("total_runs")              // Nombre total d'exécutions
+  successCount    Int      @map("success_count")           // Nombre de succès
+  failureCount    Int      @map("failure_count")           // Nombre d'échecs
+  
+  // Scores
+  reliabilityScore Float   @map("reliability_score")       // 0-100 (% de succès)
+  flakinessRate    Float   @map("flakiness_rate")          // 0-100 (% d'échec)
+  isFlaky          Boolean @map("is_flaky")                // true si détecté flaky
+  
+  // Analyse des causes
+  errorPatterns    Json?   @map("error_patterns")          // Types d'erreurs récurrentes
+  failureReasons   Json?   @map("failure_reasons")         // Raisons d'échec avec fréquence
+  
+  // Patterns temporels
+  avgDuration      Int?    @map("avg_duration")            // Durée moyenne (ms)
+  durationVariance Float?  @map("duration_variance")       // Variance de durée (écart-type)
+  lastFlipAt       DateTime? @map("last_flip_at")          // Dernière alternance succès/échec
+  flipCount        Int     @default(0) @map("flip_count")  // Nombre d'alternances
+  
+  // Recommandations
+  recommendations  Json?                                   // Suggestions pour stabiliser
+  severity         String  @default("low")                 // low, medium, high, critical
+  
+  // Dates
+  firstDetectedAt  DateTime? @map("first_detected_at")     // Première détection flaky
+  lastAnalyzedAt   DateTime @default(now()) @map("last_analyzed_at")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  test             Test    @relation(fields: [testId], references: [id], onDelete: Cascade)
+  
+  @@index([isFlaky])
+  @@index([severity])
+  @@index([reliabilityScore])
+  @@map("flakiness_reports")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  type      String   // "info", "success", "warning", "error"
+  title     String?
+  message   String   @db.Text
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, read])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model UserPreferences {
+  id            String   @id @default(cuid())
+  userId        String   @unique @map("user_id")
+  
+  // Localization
+  language      String   @default("en") // "en" | "fr"
+  timezone      String   @default("UTC")
+  
+  // Notification channels
+  emailEnabled  Boolean  @default(true) @map("email_enabled")
+  slackEnabled  Boolean  @default(false) @map("slack_enabled")
+  uiEnabled     Boolean  @default(true) @map("ui_enabled")
+  
+  // UI Preferences
+  theme         String   @default("light") // "light" | "dark" | "auto"
+  
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_preferences")
+}
+
+// ============================================
+// API Testing Models
+// ============================================
+
+model ApiTest {
+  id             String    @id @default(cuid())
+  userId         String    @map("user_id")
+  projectId      String?   @map("project_id")
+  
+  // Test details
+  name           String
+  description    String?   @db.Text
+  prompt         String?   @db.Text  // Description en langage naturel pour génération IA
+  
+  // HTTP Configuration
+  method         String    // "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"
+  url            String    @db.Text
+  headers        Json?     // { "Content-Type": "application/json", "Authorization": "Bearer xxx" }
+  body           Json?     // Request body for POST/PUT/PATCH
+  queryParams    Json?     @map("query_params") // Query parameters { "page": "1", "limit": "10" }
+  
+  // Authentication
+  authType       String?   @default("none") @map("auth_type") // "none", "bearer", "basic", "api-key", "oauth2"
+  authConfig     Json?     @map("auth_config") // Auth details (token, username/password, etc.)
+  
+  // Expectations / Assertions
+  expectedStatus Int?      @map("expected_status") // Expected status code (200, 201, 404, etc.)
+  assertions     Json?     // Array of assertions to validate response
+  timeout        Int       @default(30000) // Timeout in ms
+  
+  // Retry & Healing
+  maxRetries     Int       @default(3) @map("max_retries")
+  retryDelay     Int       @default(1000) @map("retry_delay")
+  autoHealingEnabled Boolean @default(true) @map("auto_healing_enabled")
+  
+  // Scheduling
+  isScheduled    Boolean   @default(false) @map("is_scheduled")
+  frequency      String?   // "hourly", "daily", "weekly", "monthly"
+  nextRunAt      DateTime? @map("next_run_at")
+  lastRunAt      DateTime? @map("last_run_at")
+  isActive       Boolean   @default(true) @map("is_active")
+  
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  
+  // Relations
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project        Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  runs           ApiTestRun[]
+  healingAttempts ApiHealingAttempt[]
+  flakinessReport ApiFlakinessReport?
+  
+  @@index([userId])
+  @@index([projectId])
+  @@index([isScheduled, nextRunAt, isActive])
+  @@map("api_tests")
+}
+
+model ApiTestRun {
+  id                String   @id @default(cuid())
+  apiTestId         String   @map("api_test_id")
+  
+  // Execution details
+  status            String   // "success", "failure", "error", "pending"
+  
+  // Request details
+  requestUrl        String   @map("request_url") @db.Text
+  requestMethod     String   @map("request_method")
+  requestHeaders    Json?    @map("request_headers")
+  requestBody       Json?    @map("request_body")
+  
+  // Response details
+  responseStatus    Int?     @map("response_status")
+  responseHeaders   Json?    @map("response_headers")
+  responseBody      Json?    @map("response_body")
+  responseTime      Int?     @map("response_time") // Response time in ms
+  
+  // Execution metadata
+  duration          Int?     // Total duration in ms
+  error             String?  @db.Text
+  logs              String?  @db.Text
+  
+  // Retry tracking
+  retryCount        Int      @default(0) @map("retry_count")
+  isRetry           Boolean  @default(false) @map("is_retry")
+  originalRunId     String?  @map("original_run_id")
+  
+  createdAt         DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  apiTest           ApiTest           @relation(fields: [apiTestId], references: [id], onDelete: Cascade)
+  assertions        ApiAssertion[]
+  healingAttempts   ApiHealingAttempt[] @relation("OriginalRun")
+  validatedHealingAttempts ApiHealingAttempt[] @relation("ValidationRun")
+  
+  @@index([apiTestId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("api_test_runs")
+}
+
+model ApiAssertion {
+  id            String   @id @default(cuid())
+  runId         String   @map("run_id")
+  
+  // Assertion details
+  type          String   // "status-code", "response-time", "header", "body-path", "body-schema", "body-contains"
+  field         String?  // JSON path or header name (e.g., "data.user.name", "Content-Type")
+  operator      String?  // "equals", "contains", "greater-than", "less-than", "matches", "exists"
+  expectedValue String?  @map("expected_value") @db.Text
+  actualValue   String?  @map("actual_value") @db.Text
+  
+  // Result
+  passed        Boolean
+  errorMessage  String?  @map("error_message") @db.Text
+  
+  createdAt     DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  run           ApiTestRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  
+  @@index([runId])
+  @@index([passed])
+  @@map("api_assertions")
+}
+
+model ApiHealingAttempt {
+  id              String   @id @default(cuid())
+  apiTestId       String   @map("api_test_id")
+  runId           String   @map("run_id")
+  
+  // Contexte de l'échec
+  errorType       String   @map("error_type")  // 'timeout', 'network', 'assertion', 'auth', 'rate-limit', 'server-error'
+  errorMessage    String   @map("error_message") @db.Text
+  originalConfig  Json     @map("original_config") // Configuration originale du test
+  
+  // Tentative de correction
+  healedConfig    Json?    @map("healed_config") // Configuration corrigée
+  changes         Json?    // Détails des changements appliqués
+  llmPrompt       String?  @map("llm_prompt") @db.Text
+  llmResponse     String?  @map("llm_response") @db.Text
+  
+  // Résultat
+  status          String   // 'pending', 'success', 'failed', 'manual-review'
+  validationRunId String?  @map("validation_run_id")
+  confidence      Float?   // 0-1
+  
+  healedAt        DateTime? @map("healed_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  apiTest         ApiTest      @relation(fields: [apiTestId], references: [id], onDelete: Cascade)
+  run             ApiTestRun   @relation("OriginalRun", fields: [runId], references: [id], onDelete: Cascade)
+  validationRun   ApiTestRun?  @relation("ValidationRun", fields: [validationRunId], references: [id], onDelete: SetNull)
+  
+  @@index([apiTestId])
+  @@index([runId])
+  @@index([status])
+  @@map("api_healing_attempts")
+}
+
+model ApiFlakinessReport {
+  id                String   @id @default(cuid())
+  apiTestId         String   @map("api_test_id") @unique
+  
+  // Métriques
+  totalRuns         Int      @map("total_runs")
+  successCount      Int      @map("success_count")
+  failureCount      Int      @map("failure_count")
+  
+  // Scores
+  reliabilityScore  Float    @map("reliability_score") // 0-100
+  flakinessRate     Float    @map("flakiness_rate")    // 0-100
+  isFlaky           Boolean  @map("is_flaky")
+  
+  // Performance
+  avgResponseTime   Int?     @map("avg_response_time")      // ms
+  responseTimeVariance Float? @map("response_time_variance")
+  
+  // Analyse
+  errorPatterns     Json?    @map("error_patterns")
+  failureReasons    Json?    @map("failure_reasons")
+  recommendations   Json?
+  severity          String   @default("low") // low, medium, high, critical
+  
+  // Temporal patterns
+  lastFlipAt        DateTime? @map("last_flip_at")
+  flipCount         Int      @default(0) @map("flip_count")
+  
+  firstDetectedAt   DateTime? @map("first_detected_at")
+  lastAnalyzedAt    DateTime @default(now()) @map("last_analyzed_at")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  apiTest           ApiTest  @relation(fields: [apiTestId], references: [id], onDelete: Cascade)
+  
+  @@index([isFlaky])
+  @@index([severity])
+  @@index([reliabilityScore])
+  @@map("api_flakiness_reports")
+}
+
+// ============================================
+// SMOKE TESTS - Quick validation tests
+// ============================================
+
+model SmokeTest {
+  id             String    @id @default(cuid())
+  name           String
+  description    String?   @db.Text
+  userId         String    @map("user_id")
+  projectId      String?   @map("project_id")
+  
+  // Test configuration
+  endpoints      Json      // Array of endpoints to test: [{url, method, expectedStatus, timeout}]
+  timeout        Int       @default(5000) // Timeout per endpoint in ms
+  
+  // AI generation
+  prompt         String?   @db.Text // User prompt for AI generation
+  generatedBy    String?   @map("generated_by") // "manual" or "ai"
+  
+  // Scheduling
+  isScheduled    Boolean   @default(false) @map("is_scheduled")
+  frequency      String?   // "on-deploy", "hourly", "daily"
+  nextRunAt      DateTime? @map("next_run_at")
+  lastRunAt      DateTime? @map("last_run_at")
+  isActive       Boolean   @default(true) @map("is_active")
+  
+  // Retry configuration
+  maxRetries     Int       @default(2) @map("max_retries")
+  retryDelay     Int       @default(1000) @map("retry_delay")
+  
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  
+  // Relations
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project        Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  runs           SmokeTestRun[]
+  
+  @@index([userId])
+  @@index([projectId])
+  @@index([isActive])
+  @@index([isScheduled])
+  @@map("smoke_tests")
+}
+
+model SmokeTestRun {
+  id               String    @id @default(cuid())
+  smokeTestId      String    @map("smoke_test_id")
+  status           String    // "success", "failed", "running"
+  
+  // Execution details
+  startedAt        DateTime  @default(now()) @map("started_at")
+  completedAt      DateTime? @map("completed_at")
+  duration         Int?      // Total duration in ms
+  
+  // Results per endpoint
+  results          Json?     // Array of results: [{url, status, responseTime, success, error}]
+  
+  // Summary
+  totalEndpoints   Int       @default(0) @map("total_endpoints")
+  successfulChecks Int       @default(0) @map("successful_checks")
+  failedChecks     Int       @default(0) @map("failed_checks")
+  
+  // Performance metrics
+  avgResponseTime  Int?      @map("avg_response_time")
+  slowestEndpoint  String?   @map("slowest_endpoint")
+  fastestEndpoint  String?   @map("fastest_endpoint")
+  
+  // Error tracking
+  error            String?   @db.Text
+  failedEndpoints  Json?     @map("failed_endpoints") // Array of failed endpoint details
+  
+  // Retry tracking
+  retryCount       Int       @default(0) @map("retry_count")
+  isRetry          Boolean   @default(false) @map("is_retry")
+  
+  // Relations
+  smokeTest        SmokeTest @relation(fields: [smokeTestId], references: [id], onDelete: Cascade)
+  
+  @@index([smokeTestId])
+  @@index([status])
+  @@index([startedAt])
+  @@map("smoke_test_runs")
+}
+
+model UnitTest {
+  id              String    @id @default(cuid())
+  name            String
+  userId          String    @map("user_id")
+  projectId       String?   @map("project_id")
+  
+  // Source code information
+  sourceFile      String    @map("source_file") // Path to the source file
+  functionName    String    @map("function_name") // Name of the function being tested
+  sourceCode      String    @db.Text // Original function code
+  generatedCode   String    @db.Text // Generated test code by AI
+  
+  // Test configuration
+  framework       String    @default("jest") // "jest" or "vitest"
+  language        String    @default("typescript") // "typescript", "javascript"
+  importance      Int       @default(0) // Score 0-100 from analysis
+  
+  // Metadata
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  
+  // Relations
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project         Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  runs            UnitTestRun[]
+  
+  @@index([userId])
+  @@index([projectId])
+  @@index([functionName])
+  @@index([importance])
+  @@map("unit_tests")
+}
+
+model UnitTestRun {
+  id            String    @id @default(cuid())
+  unitTestId    String    @map("unit_test_id")
+  status        String    // "passed", "failed", "running"
+  
+  // Test results
+  totalTests    Int       @default(0) @map("total_tests")
+  passedTests   Int       @default(0) @map("passed_tests")
+  failedTests   Int       @default(0) @map("failed_tests")
+  coverage      Float?    // Code coverage percentage (0-100)
+  
+  // Execution details
+  startedAt     DateTime  @default(now()) @map("started_at")
+  completedAt   DateTime? @map("completed_at")
+  duration      Int?      // Duration in ms
+  
+  // Detailed results
+  results       Json?     // Test case results: [{name, status, duration, error}]
+  error         String?   @db.Text
+  
+  // Relations
+  test          UnitTest  @relation(fields: [unitTestId], references: [id], onDelete: Cascade)
+  
+  @@index([unitTestId])
+  @@index([status])
+  @@index([startedAt])
+  @@map("unit_test_runs")
+}
+
+model FunctionAnalysis {
+  id            String    @id @default(cuid())
+  projectId     String?   @map("project_id")
+  
+  // Function information
+  functionName  String    @map("function_name")
+  filePath      String    @map("file_path")
+  importance    Int       // Score 0-100
+  reason        String    @db.Text // Why this score
+  
+  // Analysis metadata
+  analyzed      Boolean   @default(false)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  
+  // Relations
+  project       Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  @@index([projectId])
+  @@index([importance])
+  @@index([functionName])
+  @@map("function_analyses")
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Performance Tests (k6)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+model PerformanceTest {
+  id          String    @id @default(cuid())
+  name        String
+  userId      String    @map("user_id")
+  projectId   String?   @map("project_id")
+  
+  // Target configuration
+  url         String
+  method      String    @default("GET") // GET, POST, PUT, DELETE
+  headers     Json?     // Request headers
+  body        Json?     // Request body for POST/PUT
+  
+  // Load configuration
+  vus         Int       @default(10) // Virtual users (concurrent connections)
+  duration    Int       @default(30) // Duration in seconds
+  rampUp      Int       @default(10) // Ramp-up time in seconds
+  
+  // Thresholds
+  maxResponseTime Int?  @map("max_response_time") // Max acceptable response time (ms)
+  minRPS          Int?  @map("min_rps") // Minimum requests per second
+  maxErrorRate    Float? @map("max_error_rate") // Max error rate (0-1)
+  
+  // AI prompt (optional)
+  prompt      String?   @db.Text // Prompt for AI to generate k6 script
+  
+  // Metadata
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  
+  // Relations
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  runs        PerformanceTestRun[]
+  
+  @@index([userId])
+  @@index([projectId])
+  @@index([createdAt])
+  @@map("performance_tests")
+}
+
+model PerformanceTestRun {
+  id                String    @id @default(cuid())
+  performanceTestId String    @map("performance_test_id")
+  
+  // Execution status
+  status            String    // "running", "passed", "failed"
+  startedAt         DateTime  @default(now()) @map("started_at")
+  completedAt       DateTime? @map("completed_at")
+  duration          Int?      // Actual duration in ms
+  
+  // k6 metrics
+  totalRequests     Int       @default(0) @map("total_requests")
+  requestsPerSecond Float?    @map("requests_per_second") // RPS
+  failedRequests    Int       @default(0) @map("failed_requests")
+  errorRate         Float?    @map("error_rate") // 0-1
+  
+  // Response time metrics (ms)
+  avgResponseTime   Float?    @map("avg_response_time")
+  minResponseTime   Float?    @map("min_response_time")
+  maxResponseTime   Float?    @map("max_response_time")
+  p50ResponseTime   Float?    @map("p50_response_time") // Median
+  p95ResponseTime   Float?    @map("p95_response_time")
+  p99ResponseTime   Float?    @map("p99_response_time")
+  
+  // Data transfer
+  dataReceived      Float?    @map("data_received") // MB
+  dataSent          Float?    @map("data_sent") // MB
+  
+  // Detailed results (JSON from k6)
+  results           Json?
+  error             String?   @db.Text
+  
+  // Relations
+  test              PerformanceTest @relation(fields: [performanceTestId], references: [id], onDelete: Cascade)
+  metrics           PerformanceMetric[]
+  
+  @@index([performanceTestId])
+  @@index([status])
+  @@index([startedAt])
+  @@map("performance_test_runs")
+}
+
+model PerformanceMetric {
+  id        String    @id @default(cuid())
+  runId     String    @map("run_id")
+  
+  // Time-series data point
+  timestamp DateTime  @default(now())
+  
+  // Metrics at this point in time
+  vus               Int?      // Active virtual users
+  requestsPerSecond Float?    @map("requests_per_second")
+  responseTime      Float?    @map("response_time") // ms
+  errorRate         Float?    @map("error_rate") // 0-1
+  
+  // Relations
+  run       PerformanceTestRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  
+  @@index([runId])
+  @@index([timestamp])
+  @@map("performance_metrics")
+}
+
+// ==========================================
+// SECURITY TESTS (OWASP)
+// ==========================================
+
+model SecurityTest {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  projectId   String   @map("project_id")
+  
+  // Test configuration
+  name        String
+  description String?  @db.Text
+  targetUrl   String   @map("target_url") // URL de l'application à scanner
+  scanType    String   @map("scan_type") // "full", "quick", "custom"
+  
+  // OWASP checks to perform
+  checkSqlInjection     Boolean @default(true) @map("check_sql_injection")
+  checkXss              Boolean @default(true) @map("check_xss")
+  checkCsrf             Boolean @default(true) @map("check_csrf")
+  checkAuthBypass       Boolean @default(true) @map("check_auth_bypass")
+  checkSensitiveData    Boolean @default(true) @map("check_sensitive_data")
+  checkSecurityHeaders  Boolean @default(true) @map("check_security_headers")
+  checkSslTls           Boolean @default(true) @map("check_ssl_tls")
+  checkDirectoryTraversal Boolean @default(true) @map("check_directory_traversal")
+  
+  // Authentication for scanning
+  authType    String?  @map("auth_type") // "none", "basic", "bearer", "cookie"
+  authConfig  Json?    @map("auth_config") // {username, password} or {token} or {cookies}
+  
+  // AI enhancement
+  aiPrompt    String?  @map("ai_prompt") @db.Text // Prompt pour personnaliser le scan
+  
+  // Status
+  status      String   @default("draft") // "draft", "ready", "running", "completed", "failed"
+  lastRunAt   DateTime? @map("last_run_at")
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  runs        SecurityTestRun[]
+  
+  @@index([userId])
+  @@index([projectId])
+  @@index([status])
+  @@map("security_tests")
+}
+
+model SecurityTestRun {
+  id               String   @id @default(cuid())
+  securityTestId   String   @map("security_test_id")
+  
+  // Execution info
+  status           String   @default("pending") // "pending", "running", "completed", "failed"
+  startedAt        DateTime? @map("started_at")
+  completedAt      DateTime? @map("completed_at")
+  
+  // Summary metrics
+  totalChecks      Int      @default(0) @map("total_checks")
+  vulnerabilitiesFound Int   @default(0) @map("vulnerabilities_found")
+  criticalCount    Int      @default(0) @map("critical_count")
+  highCount        Int      @default(0) @map("high_count")
+  mediumCount      Int      @default(0) @map("medium_count")
+  lowCount         Int      @default(0) @map("low_count")
+  infoCount        Int      @default(0) @map("info_count")
+  
+  // Risk score (0-100)
+  riskScore        Float?   @map("risk_score")
+  
+  // Scan results
+  scanResults      Json?    @map("scan_results") // Detailed scan output
+  error            String?  @db.Text
+  
+  // Relations
+  test             SecurityTest @relation(fields: [securityTestId], references: [id], onDelete: Cascade)
+  vulnerabilities  Vulnerability[]
+  
+  @@index([securityTestId])
+  @@index([status])
+  @@index([startedAt])
+  @@map("security_test_runs")
+}
+
+model Vulnerability {
+  id          String   @id @default(cuid())
+  runId       String   @map("run_id")
+  
+  // Vulnerability details
+  type        String   // "sql_injection", "xss", "csrf", "auth_bypass", "sensitive_data", "security_headers", "ssl_tls", "directory_traversal"
+  severity    String   // "critical", "high", "medium", "low", "info"
+  title       String
+  description String   @db.Text
+  
+  // Location
+  url         String?  // URL where vulnerability was found
+  parameter   String?  // Query param, form field, header name
+  method      String?  // HTTP method (GET, POST, etc.)
+  
+  // Evidence
+  evidence    String?  @db.Text // Proof of vulnerability (payload, response, etc.)
+  cwe         String?  // CWE ID (ex: "CWE-89" for SQL injection)
+  owasp       String?  // OWASP category (ex: "A03:2021 - Injection")
+  
+  // Remediation
+  remediation String?  @db.Text // How to fix the vulnerability
+  references  Json?    // Array of reference URLs
+  
+  // Status tracking
+  status      String   @default("open") // "open", "acknowledged", "fixed", "false_positive"
+  fixedAt     DateTime? @map("fixed_at")
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  run         SecurityTestRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  
+  @@index([runId])
+  @@index([severity])
+  @@index([type])
+  @@index([status])
+  @@map("vulnerabilities")
+}
