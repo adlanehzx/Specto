@@ -1,0 +1,224 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.6;
+}
+
+/* ============================================ */
+/* THEME SYSTEM - Dark Mode Support            */
+/* ============================================ */
+
+/* Light Mode (par défaut) */
+:root.light {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
+
+  --border-color: #e5e7eb;
+  --border-hover: #d1d5db;
+
+  --blue-primary: #2563eb;
+  --blue-hover: #1d4ed8;
+  --blue-light: #dbeafe;
+
+  --green-primary: #059669;
+  --green-light: #d1fae5;
+
+  --red-primary: #dc2626;
+  --red-light: #fee2e2;
+
+  --yellow-primary: #d97706;
+  --yellow-light: #fef3c7;
+}
+
+/* Dark Mode */
+:root.dark {
+  --bg-primary: #111827;
+  --bg-secondary: #1f2937;
+  --bg-tertiary: #374151;
+
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-tertiary: #9ca3af;
+
+  --border-color: #374151;
+  --border-hover: #4b5563;
+
+  --blue-primary: #3b82f6;
+  --blue-hover: #2563eb;
+  --blue-light: #1e3a8a;
+
+  --green-primary: #10b981;
+  --green-light: #064e3b;
+
+  --red-primary: #ef4444;
+  --red-light: #7f1d1d;
+
+  --yellow-primary: #f59e0b;
+  --yellow-light: #78350f;
+}
+
+/* Appliquer les couleurs */
+.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Classes utilitaires pour le thème */
+.bg-primary {
+  background-color: var(--bg-primary);
+}
+
+.bg-secondary {
+  background-color: var(--bg-secondary);
+}
+
+.bg-tertiary {
+  background-color: var(--bg-tertiary);
+}
+
+.text-primary {
+  color: var(--text-primary);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.border-theme {
+  border-color: var(--border-color);
+}
+
+/* Composants adaptés au thème */
+.dark .bg-white {
+  background-color: var(--bg-secondary);
+}
+
+.dark .text-gray-900 {
+  color: var(--text-primary);
+}
+
+.dark .text-gray-700 {
+  color: var(--text-secondary);
+}
+
+.dark .text-gray-600,
+.dark .text-gray-500 {
+  color: var(--text-tertiary);
+}
+
+.dark .border-gray-300,
+.dark .border-gray-200 {
+  border-color: var(--border-color);
+}
+
+.dark .shadow {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.dark .hover\:bg-gray-50:hover {
+  background-color: var(--bg-tertiary);
+}
+
+/* Inputs en dark mode */
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+  border-color: var(--blue-primary);
+  background-color: var(--bg-secondary);
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* Boutons en dark mode */
+.dark .bg-blue-600 {
+  background-color: var(--blue-primary);
+}
+
+.dark .hover\:bg-blue-700:hover {
+  background-color: var(--blue-hover);
+}
+
+/* Cards et conteneurs */
+.dark .bg-gray-50 {
+  background-color: var(--bg-tertiary);
+}
+
+.dark .bg-gray-100 {
+  background-color: var(--bg-secondary);
+}
+
+/* Tableaux */
+.dark table thead {
+  background-color: var(--bg-tertiary);
+}
+
+.dark table tbody tr:hover {
+  background-color: var(--bg-tertiary);
+}
+
+/* Badges de statut */
+.dark .bg-green-100 {
+  background-color: var(--green-light);
+}
+
+.dark .bg-red-100 {
+  background-color: var(--red-light);
+}
+
+.dark .bg-yellow-100 {
+  background-color: var(--yellow-light);
+}
+
+.dark .bg-blue-100 {
+  background-color: var(--blue-light);
+}
+
+.dark .text-green-800 {
+  color: var(--green-primary);
+}
+
+.dark .text-red-800 {
+  color: var(--red-primary);
+}
+
+.dark .text-yellow-800 {
+  color: var(--yellow-primary);
+}
+
+.dark .text-blue-800 {
+  color: var(--blue-primary);
+}
+
+/* Transitions douces */
+* {
+  transition: background-color 0.2s ease, color 0.2s ease,
+    border-color 0.2s ease;
+}
