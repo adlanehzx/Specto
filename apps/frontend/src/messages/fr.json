@@ -1,0 +1,75 @@
+{
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès"
+  },
+  "navigation": {
+    "dashboard": "Tableau de bord",
+    "history": "Historique",
+    "scheduled": "Planifiés",
+    "analytics": "Analytiques",
+    "notifications": "Notifications",
+    "tunnels": "Tunnels",
+    "settings": "Paramètres"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "profile": {
+      "title": "Profil",
+      "name": "Nom",
+      "email": "Email",
+      "userId": "ID Utilisateur"
+    },
+    "preferences": {
+      "title": "Préférences",
+      "language": {
+        "label": "Langue",
+        "english": "Anglais",
+        "french": "Français"
+      },
+      "timezone": {
+        "label": "Fuseau horaire",
+        "placeholder": "Sélectionnez un fuseau horaire..."
+      },
+      "theme": {
+        "label": "Thème",
+        "light": "Clair",
+        "dark": "Sombre",
+        "auto": "Automatique"
+      },
+      "notifications": {
+        "title": "Paramètres de notification",
+        "email": "Notifications par email",
+        "slack": "Notifications Slack",
+        "ui": "Notifications dans l'application"
+      }
+    },
+    "saved": "Paramètres enregistrés avec succès",
+    "error": "Échec de l'enregistrement des paramètres"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "Aucune notification",
+    "markAllRead": "Tout marquer comme lu",
+    "markRead": "Marquer comme lu",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "types": {
+      "info": "Info",
+      "success": "Succès",
+      "warning": "Avertissement",
+      "error": "Erreur"
+    }
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "createTest": "Créer un test",
+    "launchTest": "Lancer le test",
+    "scheduleTest": "Planifier le test"
+  }
+}

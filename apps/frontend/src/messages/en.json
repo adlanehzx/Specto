@@ -1,0 +1,75 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "history": "History",
+    "scheduled": "Scheduled",
+    "analytics": "Analytics",
+    "notifications": "Notifications",
+    "tunnels": "Tunnels",
+    "settings": "Settings"
+  },
+  "settings": {
+    "title": "Settings",
+    "profile": {
+      "title": "Profile",
+      "name": "Name",
+      "email": "Email",
+      "userId": "User ID"
+    },
+    "preferences": {
+      "title": "Preferences",
+      "language": {
+        "label": "Language",
+        "english": "English",
+        "french": "French"
+      },
+      "timezone": {
+        "label": "Timezone",
+        "placeholder": "Select timezone..."
+      },
+      "theme": {
+        "label": "Theme",
+        "light": "Light",
+        "dark": "Dark",
+        "auto": "Auto"
+      },
+      "notifications": {
+        "title": "Notification Settings",
+        "email": "Email notifications",
+        "slack": "Slack notifications",
+        "ui": "In-app notifications"
+      }
+    },
+    "saved": "Settings saved successfully",
+    "error": "Failed to save settings"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications",
+    "markAllRead": "Mark all as read",
+    "markRead": "Mark as read",
+    "previous": "Previous",
+    "next": "Next",
+    "types": {
+      "info": "Info",
+      "success": "Success",
+      "warning": "Warning",
+      "error": "Error"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "createTest": "Create Test",
+    "launchTest": "Launch Test",
+    "scheduleTest": "Schedule Test"
+  }
+}
