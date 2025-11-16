@@ -1,0 +1,66 @@
+{
+  "name": "@leynai/agent",
+  "version": "1.0.0",
+  "description": "LeynAI Agent - Connect your localhost to LeynAI cloud for automated testing",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "leynai-agent": "./bin/leynai-agent.js",
+    "leynai": "./bin/leynai-agent.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "leynai",
+    "testing",
+    "playwright",
+    "tunnel",
+    "localhost",
+    "cloudflared",
+    "e2e",
+    "automation",
+    "qa"
+  ],
+  "author": "LeynAI Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leynai/leynai-agent.git"
+  },
+  "bugs": {
+    "url": "https://github.com/leynai/leynai-agent/issues"
+  },
+  "homepage": "https://leynai.com",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1",
+    "commander": "^11.1.0",
+    "conf": "^11.0.2",
+    "glob": "^10.3.10",
+    "fs-extra": "^11.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/fs-extra": "^11.0.4",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  }
+}
