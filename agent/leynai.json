@@ -1,0 +1,35 @@
+{
+  "server": "https://api.leynai.com",
+  "apiKey": "${LEYNAI_API_KEY}",
+  "project": "my-project-id",
+  "environments": {
+    "staging": {
+      "baseUrl": "https://staging.example.com",
+      "variables": {
+        "API_URL": "https://api.staging.example.com"
+      }
+    },
+    "production": {
+      "baseUrl": "https://example.com",
+      "variables": {
+        "API_URL": "https://api.example.com"
+      }
+    }
+  },
+  "tests": {
+    "e2e": [
+      "login-test",
+      "checkout-test"
+    ],
+    "api": [
+      "health-check",
+      "create-user"
+    ]
+  },
+  "options": {
+    "parallel": 3,
+    "timeout": 30000,
+    "retries": 2,
+    "bail": false
+  }
+}
