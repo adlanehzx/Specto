@@ -1,0 +1,10 @@
+# Public Assets
+
+Ce dossier contient les fichiers statiques publics de l'application.
+
+Les fichiers placés ici seront accessibles à la racine de l'application.
+
+Exemple:
+
+- `public/logo.png` → accessible via `/logo.png`
+- `public/favicon.ico` → accessible via `/favicon.ico`

@@ -1,0 +1,502 @@
+"use client";
+
+import ProtectedRoute from "@/components/ProtectedRoute";
+import DashboardLayout from "@/components/DashboardLayout";
+import ScheduleTestModal, {
+  ScheduleData,
+} from "@/components/ScheduleTestModal";
+import {
+  AssertionBuilder,
+  AssertionConfig,
+} from "@/components/AssertionBuilder";
+import { useAuth } from "@/contexts/AuthContext";
+import { useProjects } from "@/hooks/useProjects";
+import { useTranslation } from "@/contexts/TranslationContext";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Sparkles,
+  Globe,
+  Rocket,
+  Loader2,
+  RefreshCw,
+  Calendar,
+  FolderOpen,
+} from "lucide-react";
+
+export default function DashboardPage() {
+  const { t } = useTranslation();
+  const { user, logout, token } = useAuth();
+  const { projects } = useProjects();
+  const router = useRouter();
+  const [url, setUrl] = useState("");
+  const [prompt, setPrompt] = useState("");
+  const [projectId, setProjectId] = useState<string>("");
+  const [keepTunnelOpen, setKeepTunnelOpen] = useState(false);
+  const [maxRetries, setMaxRetries] = useState(3);
+  const [retryDelay, setRetryDelay] = useState(1000);
+  const [autoHealingEnabled, setAutoHealingEnabled] = useState(true);
+  const [assertions, setAssertions] = useState<AssertionConfig[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [createdTestId, setCreatedTestId] = useState<string | null>(null);
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+  // Créer un test et ouvrir le modal de scheduling
+  const handleCreateAndSchedule = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${API_URL}/api/tests`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          url,
+          prompt,
+          projectId: projectId || undefined,
+          keepTunnelOpen,
+          maxRetries,
+          retryDelay,
+          autoHealingEnabled,
+          assertions: assertions.length > 0 ? assertions : undefined,
+          executeImmediately: false, // 🔥 NE PAS lancer le test immédiatement
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Erreur lors de la création du test");
+      }
+
+      setCreatedTestId(data.testId);
+      setSuccess("Test créé ! Configurez maintenant la planification. 📅");
+      setShowScheduleModal(true);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSchedule = async (testId: string, scheduleData: ScheduleData) => {
+    try {
+      const response = await fetch(`${API_URL}/api/schedule/test/${testId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(scheduleData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to schedule test");
+      }
+
+      // Reset form and redirect
+      setUrl("");
+      setPrompt("");
+      setProjectId("");
+      setKeepTunnelOpen(false);
+      setMaxRetries(3);
+      setRetryDelay(1000);
+      setAutoHealingEnabled(true);
+      setAssertions([]);
+      setShowScheduleModal(false);
+      setCreatedTestId(null);
+
+      setTimeout(() => {
+        router.push("/scheduled");
+      }, 500);
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  // Créer un nouveau test (lancer immédiatement)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${API_URL}/api/tests`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          url,
+          prompt,
+          projectId: projectId || undefined,
+          keepTunnelOpen,
+          maxRetries,
+          retryDelay,
+          autoHealingEnabled,
+          assertions: assertions.length > 0 ? assertions : undefined,
+          executeImmediately: true, // 🚀 Lancer le test immédiatement
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Erreur lors de la création du test");
+      }
+
+      setSuccess("Test créé avec succès ! 🎉");
+      setUrl("");
+      setPrompt("");
+      setProjectId("");
+      setKeepTunnelOpen(false);
+      setMaxRetries(3);
+      setRetryDelay(1000);
+      setAutoHealingEnabled(true);
+      setAssertions([]);
+
+      // Redirect to history after successful creation
+      setTimeout(() => {
+        router.push("/history");
+      }, 1500);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <ProtectedRoute>
+      <DashboardLayout>
+        <div className="p-8">
+          {/* Create Test Form */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mb-8">
+            <div className="flex items-center gap-3 mb-6">
+              <Sparkles className="w-6 h-6 text-purple-600" />
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {t("dashboard.createTest")}
+              </h2>
+            </div>
+
+            {error && (
+              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
+                {error}
+              </div>
+            )}
+
+            {success && (
+              <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
+                {success}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <Globe className="inline w-4 h-4 mr-1" />
+                  {t("dashboard.testUrl")}
+                </label>
+                <input
+                  type="url"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  required
+                  placeholder="https://example.com"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <Sparkles className="inline w-4 h-4 mr-1" />
+                  {t("dashboard.description")}
+                </label>
+                <textarea
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  required
+                  rows={4}
+                  placeholder="Ex: Vérifier que le bouton de connexion est visible et cliquable"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                />
+              </div>
+
+              {/* Checkbox pour tunnel Cloudflare */}
+              {url.includes("localhost") ||
+              url.includes("127.0.0.1") ||
+              url.includes("0.0.0.0") ? (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 mt-0.5">
+                      <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs">🌐</span>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-blue-900 mb-2">
+                        URL locale détectée
+                      </p>
+                      <p className="text-xs text-blue-700 mb-3">
+                        Un tunnel Cloudflare sera créé automatiquement pour
+                        rendre votre site accessible publiquement pendant le
+                        test.
+                      </p>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={keepTunnelOpen}
+                          onChange={(e) => setKeepTunnelOpen(e.target.checked)}
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-blue-900">
+                          Garder le tunnel ouvert après le test
+                        </span>
+                      </label>
+                      <p className="text-xs text-blue-600 mt-1 ml-6">
+                        Utile pour exécuter plusieurs tests successifs ou pour
+                        du CI/CD
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Retry Configuration */}
+              <div className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <RefreshCw className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                    {t("dashboard.retrySettings")}
+                  </h3>
+                </div>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
+                  💡 {t("dashboard.retryDelay")}
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      {t("dashboard.maxRetries")}
+                    </label>
+                    <select
+                      value={maxRetries}
+                      onChange={(e) => setMaxRetries(Number(e.target.value))}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value={0}>Aucun retry (0)</option>
+                      <option value={1}>1 retry</option>
+                      <option value={2}>2 retries</option>
+                      <option value={3}>3 retries (recommandé)</option>
+                      <option value={5}>5 retries</option>
+                      <option value={10}>10 retries</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Délai initial (ms)
+                    </label>
+                    <select
+                      value={retryDelay}
+                      onChange={(e) => setRetryDelay(Number(e.target.value))}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value={500}>500ms (rapide)</option>
+                      <option value={1000}>1 seconde (standard)</option>
+                      <option value={2000}>2 secondes</option>
+                      <option value={5000}>5 secondes</option>
+                    </select>
+                  </div>
+                </div>
+
+                {maxRetries > 0 && (
+                  <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900/30 rounded text-xs text-blue-700 dark:text-blue-300">
+                    💡 Délais entre retries : {retryDelay}ms → {retryDelay * 2}
+                    ms → {retryDelay * 4}ms
+                    {maxRetries >= 4 && ` → ${retryDelay * 8}ms`}
+                    {maxRetries >= 5 && ` → ${retryDelay * 16}ms`}
+                  </div>
+                )}
+              </div>
+
+              {/* Auto-Healing Configuration */}
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-700 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {t("dashboard.autoHealing")} 🔧
+                  </h3>
+                  <span className="text-xs bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full font-medium">
+                    NOUVEAU
+                  </span>
+                </div>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
+                  Correction automatique des tests échoués par IA (détection
+                  d'erreur + génération de code corrigé)
+                </p>
+
+                <div className="flex items-start gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-purple-100 dark:border-purple-700">
+                  <input
+                    type="checkbox"
+                    id="auto-healing"
+                    checked={autoHealingEnabled}
+                    onChange={(e) => setAutoHealingEnabled(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                  />
+                  <div className="flex-1">
+                    <label
+                      htmlFor="auto-healing"
+                      className="text-sm font-medium text-gray-900 dark:text-gray-100 cursor-pointer"
+                    >
+                      {t("dashboard.enableAutoHealing")}
+                    </label>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                      Si tous les retries échouent, l'IA analysera l'erreur et
+                      proposera automatiquement un code corrigé.
+                    </p>
+                    {autoHealingEnabled && (
+                      <div className="mt-2 p-2 bg-purple-50 dark:bg-purple-900/30 rounded text-xs text-purple-700 dark:text-purple-300">
+                        ✨ Types d'erreurs détectées : sélecteurs invalides,
+                        timeouts, race conditions, assertions échouées,
+                        navigation inattendue
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Assertions Builder */}
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <AssertionBuilder
+                  assertions={assertions}
+                  onChange={setAssertions}
+                />
+              </div>
+
+              {/* Project Selector */}
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                  <FolderOpen className="w-4 h-4 text-indigo-600" />
+                  {t("dashboard.selectProject")}
+                </label>
+                <select
+                  value={projectId}
+                  onChange={(e) => setProjectId(e.target.value)}
+                  disabled={!projects || projects.length === 0}
+                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-gray-50 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="">Aucun projet (test personnel)</option>
+                  {projects && projects.length > 0 ? (
+                    projects.map((project) => (
+                      <option key={project.id} value={project.id}>
+                        {project.name}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="" disabled>
+                      Aucun projet disponible - Créez-en un d'abord
+                    </option>
+                  )}
+                </select>
+                <p className="mt-2 text-sm text-gray-500">
+                  {projects && projects.length > 0 ? (
+                    "Associer ce test à un projet pour une meilleure organisation"
+                  ) : (
+                    <span>
+                      Créez un projet dans la{" "}
+                      <a
+                        href="/projects"
+                        className="text-indigo-600 hover:text-indigo-800 underline"
+                      >
+                        page Projets
+                      </a>{" "}
+                      pour organiser vos tests
+                    </span>
+                  )}
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Launch Test Button */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      {t("common.loading")}
+                    </>
+                  ) : (
+                    <>
+                      <Rocket className="w-5 h-5" />
+                      {t("dashboard.launchTest")}
+                    </>
+                  )}
+                </button>
+
+                {/* Schedule Test Button */}
+                <button
+                  type="button"
+                  onClick={handleCreateAndSchedule}
+                  disabled={loading}
+                  className="bg-gradient-to-r from-purple-600 to-purple-700 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-purple-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      {t("common.loading")}
+                    </>
+                  ) : (
+                    <>
+                      <Calendar className="w-5 h-5" />
+                      {t("dashboard.scheduleTest")}
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {/* Schedule Modal */}
+        {showScheduleModal && createdTestId && (
+          <ScheduleTestModal
+            testId={createdTestId}
+            testName={prompt || "Nouveau test"}
+            onClose={() => {
+              setShowScheduleModal(false);
+              setCreatedTestId(null);
+              // Reset form
+              setUrl("");
+              setPrompt("");
+              setProjectId("");
+              setKeepTunnelOpen(false);
+              setMaxRetries(3);
+              setRetryDelay(1000);
+              setAutoHealingEnabled(true);
+              setAssertions([]);
+              // Redirect to scheduled page
+              router.push("/scheduled");
+            }}
+            onSchedule={(data) => handleSchedule(createdTestId, data)}
+          />
+        )}
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+}
