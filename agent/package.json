@@ -1,6 +1,6 @@
 {
-  "name": "@leynai/agent",
-  "version": "1.0.0",
+  "name": "@adlanehzx/leynai-agent",
+  "version": "1.1.0",
   "description": "LeynAI Agent - Connect your localhost to LeynAI cloud for automated testing",
   "type": "module",
   "main": "dist/index.js",
@@ -28,16 +28,17 @@
     "automation",
     "qa"
   ],
-  "author": "LeynAI Team",
+  "author": "adlanehzx",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/leynai/leynai-agent.git"
+    "url": "https://github.com/adlanehzx/LeynAI-testing.git",
+    "directory": "agent"
   },
   "bugs": {
-    "url": "https://github.com/leynai/leynai-agent/issues"
+    "url": "https://github.com/adlanehzx/LeynAI-testing/issues"
   },
-  "homepage": "https://leynai.com",
+  "homepage": "https://github.com/adlanehzx/LeynAI-testing#readme",
   "engines": {
     "node": ">=18.0.0"
   },

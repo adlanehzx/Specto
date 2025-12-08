@@ -244,6 +244,13 @@ async function startDaemon(backendUrl: string, ports: number[]): Promise<void> {
  */
 export async function stop(): Promise<void> {
   try {
+    // Check authentication
+    if (!isAuthenticated()) {
+      throw new Error(
+        'Not authenticated. Please run "leynai-agent login" first'
+      );
+    }
+
     const pidFile = getPidFilePath();
 
     if (!fs.existsSync(pidFile)) {
@@ -394,6 +401,13 @@ export async function test(options: {
   output?: "console" | "json";
 }): Promise<void> {
   try {
+    // Check authentication
+    if (!isAuthenticated()) {
+      throw new Error(
+        'Not authenticated. Please run "leynai-agent login" first'
+      );
+    }
+
     const { loadConfig } = await import("./configLoader.js");
 
     // Load configuration
@@ -642,6 +656,13 @@ interface AnalyzeOptions {
  */
 export async function analyze(options: AnalyzeOptions): Promise<void> {
   try {
+    // Check authentication
+    if (!isAuthenticated()) {
+      throw new Error(
+        'Not authenticated. Please run "leynai-agent login" first'
+      );
+    }
+
     const projectPath = process.cwd();
     const threshold = options.threshold || 70;
     const shouldGenerate = options.generate !== false; // Default true
