@@ -35,7 +35,9 @@ router.get("/", authenticate, async (req: Request, res: Response) => {
     // Masquer les clés (montrer seulement les 8 premiers caractères)
     const maskedKeys = apiKeys.map((key) => ({
       ...key,
-      key: `${key.key.substring(0, 12)}...${key.key.substring(key.key.length - 4)}`,
+      key: `${key.key.substring(0, 12)}...${key.key.substring(
+        key.key.length - 4
+      )}`,
       keyPreview: key.key.substring(0, 12),
     }));
 
@@ -86,7 +88,9 @@ router.post("/", authenticate, async (req: Request, res: Response) => {
       },
     });
 
-    console.log(`[API Keys] ✅ Created new API key for user ${userId}: ${name}`);
+    console.log(
+      `[API Keys] ✅ Created new API key for user ${userId}: ${name}`
+    );
 
     // Retourner la clé COMPLÈTE une seule fois
     res.json({

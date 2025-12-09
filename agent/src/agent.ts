@@ -119,7 +119,15 @@ export class LeynAIAgent {
       clearInterval(this.heartbeatTimer);
     }
 
-    // Close all tunnels
+    // Notify backend to cleanup tunnels
+    try {
+      await this.api.delete("/api/agent/tunnels");
+      console.log(chalk.gray("   ✓ Backend tunnels cleaned up"));
+    } catch (error) {
+      console.error(chalk.yellow("   ⚠ Failed to cleanup backend tunnels"));
+    }
+
+    // Close all tunnels locally
     console.log(chalk.cyan("🔌 Closing tunnels..."));
     for (const [port, url] of this.tunnels.entries()) {
       try {

@@ -192,7 +192,9 @@ export async function cleanupStaleTunnels(): Promise<number> {
       },
     });
 
-    console.log(`[TunnelManager] ✅ Cleaned up ${result.count} stale manual tunnels`);
+    console.log(
+      `[TunnelManager] ✅ Cleaned up ${result.count} stale manual tunnels`
+    );
 
     // 2. Nettoyer aussi les tunnels d'agent expirés (voir cleanupExpiredAgentTunnels)
     const agentTunnelsClosed = await cleanupExpiredAgentTunnels();
@@ -282,7 +284,10 @@ export async function cleanupExpiredAgentTunnels(): Promise<number> {
 
     return result.count;
   } catch (error) {
-    console.error("[TunnelManager] Error cleaning expired agent tunnels:", error);
+    console.error(
+      "[TunnelManager] Error cleaning expired agent tunnels:",
+      error
+    );
     return 0; // Ne pas faire crasher le cron
   }
 }

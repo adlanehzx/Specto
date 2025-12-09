@@ -268,6 +268,20 @@ export async function stop(): Promise<void> {
 
     console.log(chalk.yellow(`Stopping agent (PID: ${pid})...`));
 
+    // Cleanup tunnels on backend before stopping
+    const token = getAuthToken()!;
+    const backendUrl = getBackendUrl();
+
+    const spinner = ora("Cleaning up tunnels...").start();
+    try {
+      await axios.delete(`${backendUrl}/api/agent/tunnels`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      spinner.succeed("Tunnels cleaned up");
+    } catch (error) {
+      spinner.warn("Failed to cleanup tunnels (continuing anyway)");
+    }
+
     // Kill the process
     process.kill(pid, "SIGTERM");
 
@@ -326,6 +340,7 @@ export async function status(): Promise<void> {
       });
 
       const tunnels = response.data.tunnels;
+      const expiresIn = response.data.expiresIn;
       spinner.stop();
 
       if (tunnels && Object.keys(tunnels).length > 0) {
@@ -333,6 +348,12 @@ export async function status(): Promise<void> {
         Object.entries(tunnels).forEach(([port, url]) => {
           console.log(chalk.gray(`  Port ${port}: ${url}`));
         });
+
+        if (expiresIn && expiresIn > 0) {
+          const minutes = Math.floor(expiresIn / 60);
+          const seconds = expiresIn % 60;
+          console.log(chalk.gray(`  (expires in ${minutes}m ${seconds}s)`));
+        }
       } else {
         console.log(chalk.gray("\nNo active tunnels"));
       }
@@ -401,12 +422,8 @@ export async function test(options: {
   output?: "console" | "json";
 }): Promise<void> {
   try {
-    // Check authentication
-    if (!isAuthenticated()) {
-      throw new Error(
-        'Not authenticated. Please run "leynai-agent login" first'
-      );
-    }
+    // Note: test command uses API Keys from leynai.json, not JWT tokens
+    // No need to check isAuthenticated() here
 
     const { loadConfig } = await import("./configLoader.js");
 

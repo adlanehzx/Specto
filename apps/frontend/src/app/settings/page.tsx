@@ -110,7 +110,7 @@ export default function SettingsPage() {
   // Fetch API Keys
   const fetchApiKeys = async () => {
     if (!token) return;
-    
+
     setLoadingKeys(true);
     try {
       const response = await fetch(`${API_URL}/api/api-keys`, {
@@ -430,7 +430,8 @@ export default function SettingsPage() {
                         Created: {new Date(key.createdAt).toLocaleDateString()}
                         {key.lastUsed && (
                           <span className="ml-3">
-                            Last used: {new Date(key.lastUsed).toLocaleDateString()}
+                            Last used:{" "}
+                            {new Date(key.lastUsed).toLocaleDateString()}
                           </span>
                         )}
                       </p>
@@ -762,7 +763,8 @@ export default function SettingsPage() {
             </h3>
             <div className="mb-4">
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                This is the only time you'll see this key. Copy it now and store it securely.
+                This is the only time you'll see this key. Copy it now and store
+                it securely.
               </p>
               <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-900 rounded-md border border-gray-300 dark:border-gray-700">
                 <code className="flex-1 text-sm font-mono text-gray-900 dark:text-white break-all">
@@ -781,7 +783,8 @@ export default function SettingsPage() {
                 <strong>Usage example:</strong>
               </p>
               <code className="block mt-2 text-xs font-mono text-gray-800 dark:text-gray-200">
-                curl -H "Authorization: Bearer {createdKey.substring(0, 20)}..." <br />
+                curl -H "Authorization: Bearer {createdKey.substring(0, 20)}..."{" "}
+                <br />
                 &nbsp;&nbsp;http://localhost:4000/api/tests
               </code>
             </div>
