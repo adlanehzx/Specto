@@ -177,9 +177,11 @@ export async function cleanupStaleTunnels(): Promise<number> {
       `[TunnelManager] Cleaning up stale tunnels (created before ${twentyFourHoursAgo.toISOString()})...`
     );
 
+    // 1. Fermer les tunnels actifs depuis plus de 24h (manuels)
     const result = await prisma.tunnel.updateMany({
       where: {
         status: "active",
+        agentId: null, // Uniquement les tunnels manuels
         createdAt: {
           lt: twentyFourHoursAgo,
         },
@@ -190,12 +192,98 @@ export async function cleanupStaleTunnels(): Promise<number> {
       },
     });
 
-    console.log(`[TunnelManager] ✅ Cleaned up ${result.count} stale tunnels`);
+    console.log(`[TunnelManager] ✅ Cleaned up ${result.count} stale manual tunnels`);
 
-    return result.count;
+    // 2. Nettoyer aussi les tunnels d'agent expirés (voir cleanupExpiredAgentTunnels)
+    const agentTunnelsClosed = await cleanupExpiredAgentTunnels();
+
+    return result.count + agentTunnelsClosed;
   } catch (error) {
     console.error("[TunnelManager] Error cleaning stale tunnels:", error);
     throw error;
+  }
+}
+
+/**
+ * Ferme les tunnels d'agent qui n'ont plus de heartbeat dans Redis
+ * (Redis TTL expiré = agent déconnecté)
+ */
+export async function cleanupExpiredAgentTunnels(): Promise<number> {
+  try {
+    // Récupérer tous les tunnels d'agent actifs
+    const agentTunnels = await prisma.tunnel.findMany({
+      where: {
+        status: "active",
+        agentId: "leynai-agent",
+      },
+      select: {
+        id: true,
+        userId: true,
+        port: true,
+      },
+    });
+
+    if (agentTunnels.length === 0) {
+      return 0;
+    }
+
+    console.log(
+      `[TunnelManager] Checking ${agentTunnels.length} active agent tunnels...`
+    );
+
+    // Vérifier lesquels n'ont plus de heartbeat dans Redis
+    const Redis = require("ioredis");
+    const redis = new Redis({
+      host: process.env.REDIS_HOST || "localhost",
+      port: parseInt(process.env.REDIS_PORT || "6379", 10),
+      password: process.env.REDIS_PASSWORD || undefined,
+    });
+
+    const expiredTunnelIds: string[] = [];
+
+    for (const tunnel of agentTunnels) {
+      const redisKey = `agent:tunnels:${tunnel.userId}`;
+      const tunnelData = await redis.get(redisKey);
+
+      if (!tunnelData) {
+        // Pas de heartbeat Redis = agent déconnecté
+        expiredTunnelIds.push(tunnel.id);
+      } else {
+        // Vérifier si ce port spécifique est encore dans Redis
+        const activeTunnels = JSON.parse(tunnelData);
+        if (!activeTunnels[tunnel.port]) {
+          expiredTunnelIds.push(tunnel.id);
+        }
+      }
+    }
+
+    redis.disconnect();
+
+    if (expiredTunnelIds.length === 0) {
+      console.log("[TunnelManager] No expired agent tunnels found");
+      return 0;
+    }
+
+    // Fermer les tunnels expirés
+    const result = await prisma.tunnel.updateMany({
+      where: {
+        id: { in: expiredTunnelIds },
+        status: "active",
+      },
+      data: {
+        status: "closed",
+        closedAt: new Date(),
+      },
+    });
+
+    console.log(
+      `[TunnelManager] ✅ Closed ${result.count} expired agent tunnels`
+    );
+
+    return result.count;
+  } catch (error) {
+    console.error("[TunnelManager] Error cleaning expired agent tunnels:", error);
+    return 0; // Ne pas faire crasher le cron
   }
 }
 

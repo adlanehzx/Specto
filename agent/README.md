@@ -285,6 +285,25 @@ agent/
 
 ---
 
+## 🔄 Comment fonctionnent les Tunnels ?
+
+Quand vous lancez `leynai-agent start` :
+
+1. **L'agent détecte les serveurs actifs** sur les ports configurés (3000, 8080, 5173 par défaut)
+2. **Crée des tunnels Cloudflare** pour chaque port actif
+3. **Enregistre les tunnels** dans le backend (Redis + Database)
+4. **Les tunnels apparaissent automatiquement** dans le dashboard frontend
+5. **Heartbeat toutes les 30s** pour maintenir les tunnels actifs
+6. **Fermeture automatique** si l'agent arrête le heartbeat (1h timeout)
+
+### Synchronisation Redis ↔ Database
+
+- **Redis** : Cache rapide pour les heartbeats agent (TTL 1h)
+- **Database** : Persistance pour l'affichage frontend + historique
+- Les deux sont synchronisés automatiquement à chaque `register`
+
+---
+
 ## 🆘 Troubleshooting
 
 ### Agent ne démarre pas
@@ -292,6 +311,13 @@ agent/
 1. Vérifier que cloudflared est installé : `cloudflared --version`
 2. Vérifier l'authentification : `leynai-agent status`
 3. Vérifier le backend : `curl http://localhost:4000/api/health`
+
+### Tunnels n'apparaissent pas dans le frontend
+
+1. Vérifier que l'agent est bien démarré : `leynai-agent status`
+2. Vérifier les logs backend (doit afficher "Registered X tunnel(s)")
+3. Rafraîchir le dashboard frontend (auto-refresh toutes les 5s)
+4. Vérifier que Redis est actif : `redis-cli ping` (doit retourner `PONG`)
 
 ### Tests CLI échouent
 

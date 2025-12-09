@@ -6,9 +6,11 @@
 
 import { Router, Request, Response } from "express";
 import { authenticate } from "../middleware/auth";
+import { PrismaClient } from "@prisma/client";
 import Redis from "ioredis";
 
 const router = Router();
+const prisma = new PrismaClient();
 
 // Redis client for storing tunnel mappings
 const redis = new Redis({
@@ -66,7 +68,7 @@ router.post("/register", authenticate, async (req: Request, res: Response) => {
       }
     }
 
-    // Store tunnels in Redis with 1 hour TTL
+    // 1. Store tunnels in Redis with 1 hour TTL (pour cache rapide)
     const redisKey = `agent:tunnels:${userId}`;
     const tunnelData = tunnels.reduce((acc, t) => {
       acc[t.port] = t.url;
@@ -74,6 +76,42 @@ router.post("/register", authenticate, async (req: Request, res: Response) => {
     }, {} as Record<number, string>);
 
     await redis.set(redisKey, JSON.stringify(tunnelData), "EX", 3600);
+
+    // 2. Sync to Database (pour persistance et affichage frontend)
+    const createdTunnels = [];
+    for (const tunnel of tunnels) {
+      // Vérifier si un tunnel existe déjà pour ce port (même utilisateur)
+      const existingTunnel = await prisma.tunnel.findFirst({
+        where: {
+          userId,
+          port: tunnel.port,
+          status: "active",
+        },
+      });
+
+      if (existingTunnel) {
+        // Mettre à jour l'URL si changée (cloudflared génère de nouvelles URLs)
+        if (existingTunnel.url !== tunnel.url) {
+          await prisma.tunnel.update({
+            where: { id: existingTunnel.id },
+            data: { url: tunnel.url },
+          });
+          createdTunnels.push(existingTunnel.id);
+        }
+      } else {
+        // Créer un nouveau tunnel dans la DB
+        const newTunnel = await prisma.tunnel.create({
+          data: {
+            url: tunnel.url,
+            port: tunnel.port,
+            status: "active",
+            userId,
+            agentId: "leynai-agent", // Identifier les tunnels créés par l'agent
+          },
+        });
+        createdTunnels.push(newTunnel.id);
+      }
+    }
 
     console.log(
       `[Agent] ✅ Registered ${tunnels.length} tunnel(s) for user ${userId}`
@@ -88,6 +126,7 @@ router.post("/register", authenticate, async (req: Request, res: Response) => {
       success: true,
       message: `Registered ${tunnels.length} tunnel(s)`,
       tunnels: tunnelData,
+      createdIds: createdTunnels,
       expiresIn: 3600,
     });
   } catch (error: any) {
@@ -147,6 +186,7 @@ router.get("/tunnels", authenticate, async (req: Request, res: Response) => {
  * DELETE /api/agent/tunnels
  *
  * Clear all tunnel mappings for authenticated user
+ * Ferme aussi les tunnels dans la database
  */
 router.delete("/tunnels", authenticate, async (req: Request, res: Response) => {
   try {
@@ -159,14 +199,31 @@ router.delete("/tunnels", authenticate, async (req: Request, res: Response) => {
       });
     }
 
+    // 1. Clear Redis cache
     const redisKey = `agent:tunnels:${userId}`;
     await redis.del(redisKey);
 
-    console.log(`[Agent] 🗑️  Cleared tunnel mappings for user ${userId}`);
+    // 2. Fermer tous les tunnels actifs de l'agent dans la DB
+    const closedTunnels = await prisma.tunnel.updateMany({
+      where: {
+        userId,
+        status: "active",
+        agentId: "leynai-agent",
+      },
+      data: {
+        status: "closed",
+        closedAt: new Date(),
+      },
+    });
+
+    console.log(
+      `[Agent] 🗑️  Cleared tunnel mappings for user ${userId} (${closedTunnels.count} tunnels closed)`
+    );
 
     return res.status(200).json({
       success: true,
       message: "Tunnel mappings cleared",
+      closedCount: closedTunnels.count,
     });
   } catch (error: any) {
     console.error("[Agent] ❌ Error clearing tunnels:", error);
