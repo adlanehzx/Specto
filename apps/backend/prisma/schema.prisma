@@ -38,12 +38,29 @@ model User {
   unitTests    UnitTest[]
   performanceTests PerformanceTest[]
   securityTests SecurityTest[]
+  apiKeys      ApiKey[]
 
   @@index([googleId])
   @@index([githubId])
   @@index([slackId])
   @@index([provider, providerId])
   @@map("users")
+}
+
+model ApiKey {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  key       String    @unique
+  name      String
+  lastUsed  DateTime? @map("last_used")
+  createdAt DateTime  @default(now()) @map("created_at")
+  expiresAt DateTime? @map("expires_at")
+  
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([key])
+  @@map("api_keys")
 }
 
 model Project {

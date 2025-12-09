@@ -20,6 +20,7 @@ import smokeTestRoutes from "./smokeTests";
 import unitTestRoutes from "./unitTests";
 import performanceTestRoutes from "./performanceTests";
 import securityTestRoutes from "./securityTests";
+import apiKeysRoutes from "./apiKeys";
 
 const router = Router();
 
@@ -84,5 +85,8 @@ router.use("/security-tests", securityTestRoutes);
 
 // Routes CLI pour CI/CD (protégées)
 router.use("/cli", cliRoutes);
+
+// Routes des API Keys (protégées)
+router.use("/api-keys", apiKeysRoutes);
 
 export default router;

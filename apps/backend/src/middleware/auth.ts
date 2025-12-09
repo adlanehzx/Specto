@@ -26,9 +26,9 @@ declare global {
 
 /**
  * Middleware d'authentification
- * Vérifie le token JWT et ajoute userId et userEmail à req
+ * Supporte JWT tokens ET API keys
  */
-export const authenticate = (
+export const authenticate = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -45,6 +45,32 @@ export const authenticate = (
 
     const token = authHeader.substring(7); // Enlever "Bearer "
 
+    // Vérifier si c'est une API key (commence par "ley_")
+    if (token.startsWith("ley_")) {
+      return await authenticateWithApiKey(token, req, res, next);
+    }
+
+    // Sinon, c'est un JWT token
+    return authenticateWithJWT(token, req, res, next);
+  } catch (error: any) {
+    console.error("Authentication error:", error);
+    res.status(500).json({
+      error: "Erreur d'authentification",
+      message: error.message,
+    });
+  }
+};
+
+/**
+ * Authentification avec JWT
+ */
+function authenticateWithJWT(
+  token: string,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
     // Vérifier le token
     const decoded = jwt.verify(token, JWT_SECRET) as {
       userId: string;
@@ -61,8 +87,6 @@ export const authenticate = (
 
     next();
   } catch (error: any) {
-    console.error("Authentication error:", error);
-
     if (error.name === "JsonWebTokenError") {
       return res.status(401).json({
         error: "Token invalide",
@@ -75,12 +99,68 @@ export const authenticate = (
       });
     }
 
-    res.status(500).json({
-      error: "Erreur d'authentification",
+    throw error;
+  }
+}
+
+/**
+ * Authentification avec API Key
+ */
+async function authenticateWithApiKey(
+  apiKey: string,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const { PrismaClient } = await import("@prisma/client");
+    const prisma = new PrismaClient();
+
+    // Chercher la clé dans la DB
+    const key = await prisma.apiKey.findUnique({
+      where: { key: apiKey },
+      include: { user: true },
+    });
+
+    if (!key) {
+      return res.status(401).json({
+        error: "API key invalide",
+      });
+    }
+
+    // Vérifier si la clé est expirée
+    if (key.expiresAt && key.expiresAt < new Date()) {
+      return res.status(401).json({
+        error: "API key expirée",
+      });
+    }
+
+    // Mettre à jour lastUsed (async, sans bloquer)
+    prisma.apiKey
+      .update({
+        where: { id: key.id },
+        data: { lastUsed: new Date() },
+      })
+      .catch((err) => console.error("Error updating API key lastUsed:", err));
+
+    // Ajouter les infos de l'utilisateur à la requête
+    req.userId = key.userId;
+    req.userEmail = key.user.email;
+    req.user = {
+      id: key.userId,
+      email: key.user.email,
+    };
+
+    await prisma.$disconnect();
+    next();
+  } catch (error: any) {
+    console.error("API key authentication error:", error);
+    return res.status(500).json({
+      error: "Erreur lors de la vérification de l'API key",
       message: error.message,
     });
   }
-};
+}
 
 /**
  * Middleware d'authentification optionnelle

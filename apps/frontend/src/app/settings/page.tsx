@@ -11,6 +11,7 @@ import type {
   UserPreferences,
   UpdatePreferencesPayload,
 } from "@/types/preferences";
+import { Key, Copy, Trash2, Plus } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -33,6 +34,14 @@ export default function SettingsPage() {
   const [slackNotifications, setSlackNotifications] = useState(false);
   const [uiNotifications, setUiNotifications] = useState(true);
   const [theme, setTheme] = useState<"light" | "dark" | "auto">("auto");
+
+  // API Keys state
+  const [apiKeys, setApiKeys] = useState<any[]>([]);
+  const [loadingKeys, setLoadingKeys] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [newKeyName, setNewKeyName] = useState("");
+  const [createdKey, setCreatedKey] = useState<string | null>(null);
+  const [creatingKey, setCreatingKey] = useState(false);
 
   // Detect user's timezone automatically
   useEffect(() => {
@@ -94,8 +103,91 @@ export default function SettingsPage() {
     };
 
     fetchPreferences();
+    fetchApiKeys();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Ne charger qu'une seule fois au mount
+
+  // Fetch API Keys
+  const fetchApiKeys = async () => {
+    if (!token) return;
+    
+    setLoadingKeys(true);
+    try {
+      const response = await fetch(`${API_URL}/api/api-keys`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch API keys");
+
+      const data = await response.json();
+      setApiKeys(data.apiKeys || []);
+    } catch (error) {
+      console.error("Failed to fetch API keys:", error);
+      toast.error("Failed to load API keys");
+    } finally {
+      setLoadingKeys(false);
+    }
+  };
+
+  // Create API Key
+  const createApiKey = async () => {
+    if (!newKeyName.trim()) {
+      toast.error("Please enter a key name");
+      return;
+    }
+
+    setCreatingKey(true);
+    try {
+      const response = await fetch(`${API_URL}/api/api-keys`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name: newKeyName }),
+      });
+
+      if (!response.ok) throw new Error("Failed to create API key");
+
+      const data = await response.json();
+      setCreatedKey(data.apiKey.key);
+      setNewKeyName("");
+      setShowCreateDialog(false);
+      await fetchApiKeys();
+      toast.success("API Key created successfully!");
+    } catch (error) {
+      console.error("Failed to create API key:", error);
+      toast.error("Failed to create API key");
+    } finally {
+      setCreatingKey(false);
+    }
+  };
+
+  // Delete API Key
+  const deleteApiKey = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this API key?")) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/api-keys/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) throw new Error("Failed to delete API key");
+
+      await fetchApiKeys();
+      toast.success("API Key deleted successfully!");
+    } catch (error) {
+      console.error("Failed to delete API key:", error);
+      toast.error("Failed to delete API key");
+    }
+  };
+
+  // Copy to clipboard
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Copied to clipboard!");
+  };
 
   // Auto-save function with debounce
   const autoSave = useCallback(async () => {
@@ -288,6 +380,81 @@ export default function SettingsPage() {
                 />
               </div>
             </div>
+          </div>
+
+          {/* API Keys Section */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Key className="w-5 h-5" />
+                  API Keys
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Use API keys for CI/CD integration and automated testing
+                </p>
+              </div>
+              <button
+                onClick={() => setShowCreateDialog(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Create Key
+              </button>
+            </div>
+
+            {loadingKeys ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : apiKeys.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <Key className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p>No API keys yet. Create one to get started.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {apiKeys.map((key) => (
+                  <div
+                    key={key.id}
+                    className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                  >
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-900 dark:text-white">
+                        {key.name}
+                      </h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 font-mono mt-1">
+                        {key.keyPreview || key.key?.substring(0, 12)}...
+                      </p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                        Created: {new Date(key.createdAt).toLocaleDateString()}
+                        {key.lastUsed && (
+                          <span className="ml-3">
+                            Last used: {new Date(key.lastUsed).toLocaleDateString()}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => copyToClipboard(key.key)}
+                        className="p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                        title="Copy key"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => deleteApiKey(key.id)}
+                        className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                        title="Delete key"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Preferences Section */}
@@ -542,6 +709,91 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Create API Key Dialog */}
+      {showCreateDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+              Create New API Key
+            </h3>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Key Name
+              </label>
+              <input
+                type="text"
+                value={newKeyName}
+                onChange={(e) => setNewKeyName(e.target.value)}
+                placeholder="e.g., CI/CD Production"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                autoFocus
+              />
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowCreateDialog(false);
+                  setNewKeyName("");
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                disabled={creatingKey}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={createApiKey}
+                disabled={creatingKey || !newKeyName.trim()}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {creatingKey ? "Creating..." : "Create"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Show Created Key Dialog */}
+      {createdKey && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4">
+            <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+              ⚠️ Save Your API Key
+            </h3>
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                This is the only time you'll see this key. Copy it now and store it securely.
+              </p>
+              <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-900 rounded-md border border-gray-300 dark:border-gray-700">
+                <code className="flex-1 text-sm font-mono text-gray-900 dark:text-white break-all">
+                  {createdKey}
+                </code>
+                <button
+                  onClick={() => copyToClipboard(createdKey)}
+                  className="p-2 text-blue-600 hover:text-blue-700 transition-colors flex-shrink-0"
+                >
+                  <Copy className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+              <p className="text-sm text-gray-700 dark:text-gray-300">
+                <strong>Usage example:</strong>
+              </p>
+              <code className="block mt-2 text-xs font-mono text-gray-800 dark:text-gray-200">
+                curl -H "Authorization: Bearer {createdKey.substring(0, 20)}..." <br />
+                &nbsp;&nbsp;http://localhost:4000/api/tests
+              </code>
+            </div>
+            <button
+              onClick={() => setCreatedKey(null)}
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
+              I've saved my key
+            </button>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }
