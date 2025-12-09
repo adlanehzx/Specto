@@ -62,18 +62,23 @@ router.post("/run-tests", async (req: Request, res: Response) => {
     const { projectId, environment, tests, options } =
       req.body as CliRunTestsRequest;
 
-    // Validate project access
+    // Validate project access (support both ID and slug)
     const project = await prisma.project.findFirst({
       where: {
-        id: projectId,
         OR: [
-          { createdBy: userId },
-          {
-            members: {
-              some: { userId },
-            },
-          },
+          { id: projectId }, // Support CUID (legacy)
+          { slug: projectId }, // Support slug (preferred)
         ],
+        AND: {
+          OR: [
+            { createdBy: userId },
+            {
+              members: {
+                some: { userId },
+              },
+            },
+          ],
+        },
       },
     });
 

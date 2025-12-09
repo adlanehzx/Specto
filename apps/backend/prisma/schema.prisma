@@ -66,6 +66,7 @@ model ApiKey {
 model Project {
   id          String   @id @default(cuid())
   name        String
+  slug        String   @unique // URL-friendly identifier (e.g., "my-ecommerce-app")
   description String?  @db.Text
   createdBy   String   @map("created_by")
   createdAt   DateTime @default(now()) @map("created_at")
@@ -83,6 +84,7 @@ model Project {
   securityTests SecurityTest[]
   
   @@index([createdBy])
+  @@index([slug])
   @@map("projects")
 }
 
