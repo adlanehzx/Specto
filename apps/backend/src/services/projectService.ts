@@ -9,14 +9,36 @@ import {
 } from "../types/project.types";
 import { sendInvitationEmail } from "./emailService";
 
+/**
+ * Generate a unique slug from project name
+ */
+function generateSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 export class ProjectService {
   /**
    * Create a new project
    */
   async createProject(userId: string, data: CreateProjectDto) {
+    // Generate base slug from name
+    const baseSlug = generateSlug(data.name);
+
+    // Check if slug exists and make it unique
+    let slug = baseSlug;
+    let counter = 1;
+    while (await prisma.project.findUnique({ where: { slug } })) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+
     const project = await prisma.project.create({
       data: {
         name: data.name,
+        slug,
         description: data.description,
         createdBy: userId,
         members: {
@@ -115,6 +137,62 @@ export class ProjectService {
     }
 
     return project;
+  }
+
+  /**
+   * Update project details (name, description)
+   */
+  async updateProject(
+    projectId: string,
+    userId: string,
+    data: { name?: string; description?: string }
+  ) {
+    // Check if user has access and is owner/admin
+    const project = await this.getProjectById(projectId, userId);
+    const member = project.members.find((m) => m.userId === userId);
+
+    if (!member || (member.role !== "owner" && member.role !== "admin")) {
+      throw new Error("Only owner or admin can update project details");
+    }
+
+    const updatedProject = await prisma.project.update({
+      where: { id: projectId },
+      data,
+      include: {
+        members: {
+          include: {
+            user: {
+              select: { id: true, email: true },
+            },
+          },
+        },
+        _count: {
+          select: { tests: true },
+        },
+      },
+    });
+
+    return updatedProject;
+  }
+
+  /**
+   * Delete project (owner only)
+   */
+  async deleteProject(projectId: string, userId: string) {
+    // Check if user has access
+    const project = await this.getProjectById(projectId, userId);
+    const member = project.members.find((m) => m.userId === userId);
+
+    if (!member || member.role !== "owner") {
+      throw new Error("Only project owner can delete the project");
+    }
+
+    // Delete all related data (cascade should handle most, but let's be explicit)
+    await prisma.project.delete({
+      where: { id: projectId },
+    });
+
+    return true;
   }
 
   /**

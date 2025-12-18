@@ -3,7 +3,7 @@ import chalk from "chalk";
 import ora, { Ora } from "ora";
 import { exec } from "child_process";
 import { promisify } from "util";
-import * as tunnel from "./tunnel";
+import * as tunnel from "./tunnel.js";
 
 const execAsync = promisify(exec);
 
@@ -151,7 +151,7 @@ export class LeynAIAgent {
     const spinner = ora("Authenticating with backend...").start();
 
     try {
-      const response = await this.api.get("/api/health");
+      const response = await this.api.get("/health");
 
       if (response.status === 200) {
         spinner.succeed("Authentication successful");

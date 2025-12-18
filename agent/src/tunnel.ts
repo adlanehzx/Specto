@@ -91,14 +91,7 @@ export async function createTunnel(
   }
 
   return new Promise((resolve, reject) => {
-    const timeoutId = setTimeout(() => {
-      tunnelProcess.kill();
-      reject(
-        new Error(`Timeout creating tunnel for port ${port} after ${timeout}ms`)
-      );
-    }, timeout);
-
-    // Spawn cloudflared process
+    // Spawn cloudflared process first
     const tunnelProcess = spawn(
       "cloudflared",
       ["tunnel", "--url", `http://localhost:${port}`, "--no-autoupdate"],
@@ -110,13 +103,17 @@ export async function createTunnel(
       }
     );
 
+    const timeoutId = setTimeout(() => {
+      tunnelProcess.kill();
+      reject(
+        new Error(`Timeout creating tunnel for port ${port} after ${timeout}ms`)
+      );
+    }, timeout);
+
     let publicUrl: string | null = null;
 
-    // Capture stdout to extract public URL
-    tunnelProcess.stdout?.on("data", (data: Buffer) => {
-      const output = data.toString();
-
-      // Extract public URL (format: https://something.trycloudflare.com)
+    // Helper function to extract URL from output
+    const extractUrl = (output: string) => {
       const urlMatch = output.match(
         /https:\/\/[a-zA-Z0-9-]+\.trycloudflare\.com/
       );
@@ -134,15 +131,24 @@ export async function createTunnel(
 
         resolve(publicUrl);
       }
+    };
+
+    // Capture stdout to extract public URL
+    tunnelProcess.stdout?.on("data", (data: Buffer) => {
+      const output = data.toString();
+      extractUrl(output);
     });
 
-    // Capture stderr (cloudflared uses stderr for logs)
+    // Capture stderr (cloudflared uses stderr for logs AND the URL)
     tunnelProcess.stderr?.on("data", (data: Buffer) => {
-      const error = data.toString();
+      const output = data.toString();
 
-      // Check for actual errors (not just logs)
-      if (error.toLowerCase().includes("error") && !publicUrl) {
-        console.error(`[Cloudflared] ${error.trim()}`);
+      // Try to extract URL from stderr too
+      extractUrl(output);
+
+      // Check for actual errors
+      if (output.toLowerCase().includes("error") && !publicUrl) {
+        console.error(`[Cloudflared] ${output.trim()}`);
       }
     });
 

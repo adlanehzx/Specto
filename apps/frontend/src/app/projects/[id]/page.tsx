@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { ProjectInviteModal } from "@/components/ProjectInviteModal";
 import { MembersList } from "@/components/MembersList";
 import { ProjectTestsList } from "@/components/ProjectTestsList";
+import { ProjectSettings } from "@/components/ProjectSettings";
 import {
   getUserRole,
   canInvite,
@@ -178,16 +179,7 @@ function ProjectDetailPageContent() {
           )}
 
           {activeTab === "settings" && (
-            <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
-              <Settings className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Paramètres du projet
-              </h3>
-              <p className="text-gray-600">
-                Ici vous pourrez modifier le nom, la description et supprimer le
-                projet.
-              </p>
-            </div>
+            <ProjectSettings project={project} onProjectUpdated={mutate} />
           )}
         </div>
       </div>

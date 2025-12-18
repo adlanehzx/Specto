@@ -11,6 +11,11 @@ import * as fs from "fs";
 import * as fse from "fs-extra";
 import * as path from "path";
 import * as os from "os";
+import { fileURLToPath } from "url";
+
+// ESM equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 import {
   setAuthToken,
   getAuthToken,
@@ -426,6 +431,7 @@ export async function test(options: {
     // No need to check isAuthenticated() here
 
     const { loadConfig } = await import("./configLoader.js");
+    const tunnel = await import("./tunnel.js");
 
     // Load configuration
     const configPath = options.config || "leynai.json";
@@ -435,38 +441,66 @@ export async function test(options: {
     console.log(chalk.green(`✓ Configuration loaded\n`));
 
     // Display test plan
-    const environment = options.env || "default";
+    const environment = options.env || "local";
+    const baseUrl = config.environments?.[environment]?.baseUrl || "http://localhost:3000";
+    
     console.log(chalk.gray(`Server: ${config.server}`));
     console.log(chalk.gray(`Project: ${config.project}`));
-    console.log(chalk.gray(`Environment: ${environment}\n`));
+    console.log(chalk.gray(`Environment: ${environment}`));
+    console.log(chalk.gray(`Base URL: ${baseUrl}\n`));
 
-    // Prepare test execution request
-    let testsToRun = config.tests || {};
+    // Extract port from baseUrl
+    const portMatch = baseUrl.match(/:(\d+)/);
+    const port = portMatch ? parseInt(portMatch[1]) : 3000;
 
-    // Filter by type if --only specified
-    if (options.only) {
-      const testType = options.only;
-      testsToRun = { [testType]: testsToRun[testType] };
+    // Check if cloudflared is installed
+    console.log(chalk.cyan("🔍 Checking cloudflared installation..."));
+    const isCloudflaredInstalled = await tunnel.checkCloudflaredInstalled();
+    if (!isCloudflaredInstalled) {
+      tunnel.printInstallInstructions();
+      throw new Error("cloudflared is required for testing");
     }
 
-    // Calculate total tests
-    const totalTests = Object.values(testsToRun).reduce(
-      (sum: number, tests: any) => sum + (tests?.length || 0),
-      0
-    );
-    console.log(chalk.cyan(`🚀 Running ${totalTests} tests...\n`));
+    // Create tunnel
+    console.log(chalk.cyan(`🚇 Creating tunnel to localhost:${port}...`));
+    const tunnelUrl = await tunnel.createTunnel(port, 30000);
+    console.log(chalk.green(`✓ Tunnel created: ${tunnelUrl}\n`));
+
+    // Get tests from config and flatten them
+    const tests = config.tests || {};
+    const allTests: any[] = [];
+    
+    // Collect all tests from different types
+    if (tests.e2e && Array.isArray(tests.e2e)) {
+      allTests.push(...tests.e2e.map((t: any) => ({ ...t, type: 'e2e' })));
+    }
+    if (tests.smoke && Array.isArray(tests.smoke)) {
+      allTests.push(...tests.smoke.map((t: any) => ({ ...t, type: 'smoke' })));
+    }
+    if (tests.api && Array.isArray(tests.api)) {
+      allTests.push(...tests.api.map((t: any) => ({ ...t, type: 'api' })));
+    }
+    
+    if (allTests.length === 0) {
+      console.log(chalk.yellow("⚠️  No tests found in configuration"));
+      await tunnel.closeTunnel(port);
+      return;
+    }
+
+    console.log(chalk.cyan(`🚀 Running ${allTests.length} test(s)...\n`));
 
     // Start spinner
     const spinner = ora("Executing tests...").start();
 
     try {
-      // Call backend API
+      // Call backend API with tunnel URL and test descriptions
       const response = await axios.post(
         `${config.server}/api/cli/run-tests`,
         {
           projectId: config.project,
           environment,
-          tests: testsToRun,
+          tunnelUrl,
+          tests: allTests,
           options: config.options,
         },
         {
@@ -474,13 +508,17 @@ export async function test(options: {
             Authorization: `Bearer ${config.apiKey}`,
             "Content-Type": "application/json",
           },
-          timeout: (config.options?.timeout || 30000) + 5000,
+          timeout: (config.options?.timeout || 30000) * allTests.length + 10000,
         }
       );
 
       spinner.stop();
 
       const { summary, results, runId } = response.data;
+
+      // Close tunnel
+      console.log(chalk.gray("\n🚇 Closing tunnel..."));
+      await tunnel.closeTunnel(port);
 
       // Output results
       if (options.output === "json") {
@@ -497,6 +535,13 @@ export async function test(options: {
       }
     } catch (error: any) {
       spinner.fail("Test execution failed");
+
+      // Close tunnel on error
+      try {
+        await tunnel.closeTunnel(port);
+      } catch (e) {
+        // Ignore tunnel close errors
+      }
 
       if (error.response) {
         console.error(

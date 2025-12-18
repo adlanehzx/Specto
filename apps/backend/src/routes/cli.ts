@@ -10,9 +10,13 @@ import { executeApiTestWithRetry } from "../runner/apirunner";
 import { addTestToQueue } from "../queue";
 import { executePerformanceTest } from "../runner/k6runner";
 import { executeSecurityTest } from "../runner/securityrunner";
+import { authenticate } from "../middleware/auth";
 
 const router = express.Router();
 const prisma = new PrismaClient();
+
+// Apply authentication middleware to all CLI routes
+router.use(authenticate);
 
 /**
  * Interface for CLI test run request
@@ -51,6 +55,9 @@ interface TestRunResult {
 /**
  * POST /api/cli/run-tests
  * Launch tests from CLI (CI/CD integration)
+ * Supports both:
+ * - Legacy format: tests = { e2e: [...], api: [...] }
+ * - New format: tests = [ { name, url, description }, ... ]
  */
 router.post("/run-tests", async (req: Request, res: Response) => {
   try {
@@ -59,16 +66,12 @@ router.post("/run-tests", async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Authentication required" });
     }
 
-    const { projectId, environment, tests, options } =
-      req.body as CliRunTestsRequest;
+    const { projectId, environment, tests, tunnelUrl, options } = req.body;
 
     // Validate project access (support both ID and slug)
     const project = await prisma.project.findFirst({
       where: {
-        OR: [
-          { id: projectId }, // Support CUID (legacy)
-          { slug: projectId }, // Support slug (preferred)
-        ],
+        OR: [{ id: projectId }, { slug: projectId }],
         AND: {
           OR: [
             { createdBy: userId },
@@ -96,19 +99,38 @@ router.post("/run-tests", async (req: Request, res: Response) => {
     // Prepare test execution tasks
     const tasks: Promise<TestRunResult>[] = [];
 
-    // Execute E2E tests
-    if (tests?.e2e && tests.e2e.length > 0) {
-      for (const testIdOrName of tests.e2e) {
+    // Check if new format (array of test descriptions)
+    if (Array.isArray(tests) && tests.length > 0 && tunnelUrl) {
+      // New format: generate and execute tests from descriptions
+      for (const testDesc of tests) {
         tasks.push(
-          executeE2ETest(
-            testIdOrName,
-            projectId,
+          executeTestFromDescription(
+            testDesc,
+            tunnelUrl,
+            project.id,
             userId,
-            environment,
             runId,
             options
           )
         );
+      }
+    }
+    // Legacy format
+    else if (tests && typeof tests === "object") {
+      // Execute E2E tests
+      if (tests.e2e && tests.e2e.length > 0) {
+        for (const testIdOrName of tests.e2e) {
+          tasks.push(
+            executeE2ETest(
+              testIdOrName,
+              projectId,
+              userId,
+              environment,
+              runId,
+              options
+            )
+          );
+        }
       }
     }
 
@@ -408,6 +430,108 @@ router.get("/tests", async (req: Request, res: Response) => {
     res.status(500).json({ error: error.message || "Failed to list tests" });
   }
 });
+
+/**
+ * Helper: Execute test from natural language description
+ * Generates Playwright code with AI and executes it
+ */
+async function executeTestFromDescription(
+  testDesc: { name: string; url: string; description: string; type?: string },
+  tunnelUrl: string,
+  projectId: string,
+  userId: string,
+  runId: string,
+  options: any
+): Promise<TestRunResult> {
+  const startTime = Date.now();
+
+  try {
+    const { buildLLMRequest } = await import("../llm/promptBuilder");
+    const axios = await import("axios");
+    // Create or find the test in the database
+    let test = await prisma.test.findFirst({
+      where: {
+        projectId,
+        url: testDesc.url,
+        prompt: testDesc.description,
+      },
+    });
+
+    if (!test) {
+      test = await prisma.test.create({
+        data: {
+          url: testDesc.url,
+          projectId,
+          userId: userId,
+          prompt: testDesc.description,
+          code: "", // Will be filled with generated code
+        },
+      });
+    }
+    // Generate Playwright code with LLM
+    const fullUrl = `${tunnelUrl}${testDesc.url}`;
+    const llmRequest = buildLLMRequest(testDesc.description, fullUrl);
+
+    // Call OpenAI/LLM service
+    const llmResponse = await axios.default.post(
+      "https://api.openai.com/v1/chat/completions",
+      llmRequest,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    let generatedCode = llmResponse.data.choices[0].message.content;
+    // Strip markdown code blocks if present
+    const codeBlockMatch = generatedCode.match(
+      /```(?:typescript|ts)?\s*\n([\s\S]*?)\n```/
+    );
+    if (codeBlockMatch) {
+      generatedCode = codeBlockMatch[1];
+    }
+
+    console.log(`[AI Test Generation] Generated code for "${testDesc.name}":`);
+    console.log("=".repeat(80));
+    console.log(generatedCode);
+    console.log("=".repeat(80));
+    // Execute the generated code
+    const result = await runTestFromCode(generatedCode, {
+      headless: true,
+      timeout: options?.timeout || 30000,
+    });
+    // Save test result to database
+    await prisma.result.create({
+      data: {
+        testId: test.id,
+        status: result.status === "passed" ? "success" : "failure",
+        duration: result.duration,
+        logs: result.errorMessage || null,
+      },
+    });
+    return {
+      testId: test.id,
+      testName: testDesc.name,
+      type: (testDesc.type as any) || "e2e",
+      status: result.status === "passed" ? "passed" : "failed",
+      duration: result.duration,
+      error: result.errorMessage,
+      runId,
+    };
+  } catch (error: any) {
+    return {
+      testId: `generated-error`,
+      testName: testDesc.name,
+      type: (testDesc.type as any) || "e2e",
+      status: "failed",
+      duration: Date.now() - startTime,
+      error: error.message,
+      runId,
+    };
+  }
+}
 
 /**
  * Helper: Execute E2E test

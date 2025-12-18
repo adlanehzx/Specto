@@ -108,6 +108,81 @@ router.get("/:id", async (req: Request, res: Response) => {
 });
 
 /**
+ * PATCH /api/projects/:id
+ * Update project details (name, description)
+ */
+router.patch("/:id", async (req: Request, res: Response) => {
+  console.log("✏️ PATCH /projects/:id - Update project");
+  console.log("User:", req.user);
+  console.log("Body:", req.body);
+
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const userId = req.user.id;
+    const { id } = req.params;
+    const { name, description } = req.body;
+
+    const project = await projectService.updateProject(id, userId, {
+      name,
+      description,
+    });
+
+    console.log("✅ Project updated:", project.id);
+    res.json(project);
+  } catch (error: any) {
+    console.error("❌ Error updating project:", error);
+
+    if (error.message === "Project not found or access denied") {
+      return res.status(404).json({ error: error.message });
+    }
+
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to update project" });
+  }
+});
+
+/**
+ * DELETE /api/projects/:id
+ * Delete a project (owner only)
+ */
+router.delete("/:id", async (req: Request, res: Response) => {
+  console.log("🗑️ DELETE /projects/:id - Delete project");
+  console.log("User:", req.user);
+
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const userId = req.user.id;
+    const { id } = req.params;
+
+    await projectService.deleteProject(id, userId);
+
+    console.log("✅ Project deleted:", id);
+    res.json({ message: "Project deleted successfully" });
+  } catch (error: any) {
+    console.error("❌ Error deleting project:", error);
+
+    if (error.message === "Project not found or access denied") {
+      return res.status(404).json({ error: error.message });
+    }
+
+    if (error.message === "Only project owner can delete the project") {
+      return res.status(403).json({ error: error.message });
+    }
+
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to delete project" });
+  }
+});
+
+/**
  * POST /api/projects/:id/invite
  * Invite a member to the project
  */

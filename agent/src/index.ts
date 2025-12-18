@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { LeynAIAgent } from "./agent";
+import { LeynAIAgent } from "./agent.js";
 import dotenv from "dotenv";
 import chalk from "chalk";
 

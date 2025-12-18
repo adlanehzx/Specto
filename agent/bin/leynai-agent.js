@@ -110,7 +110,7 @@ program
   .command("test")
   .description("Run tests from leynai.json configuration")
   .option("-c, --config <path>", "Path to config file", "leynai.json")
-  .option("-e, --env <name>", "Environment to use", "default")
+  .option("-e, --env <name>", "Environment to use", "local")
   .option(
     "--only <type>",
     "Run only specific test type (e2e, api, unit, smoke, performance, security)"

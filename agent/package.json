@@ -1,6 +1,6 @@
 {
   "name": "@adlanehzx/leynai-agent",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "LeynAI Agent - Connect your localhost to LeynAI cloud for automated testing",
   "type": "module",
   "main": "dist/index.js",
@@ -56,12 +56,12 @@
     "commander": "^11.1.0",
     "conf": "^11.0.2",
     "glob": "^10.3.10",
-    "fs-extra": "^11.2.0"
+    "fs-extra": "^11.2.0",
+    "typescript": "^5.3.3"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
     "@types/fs-extra": "^11.0.4",
-    "tsx": "^4.7.0",
-    "typescript": "^5.3.3"
+    "tsx": "^4.7.0"
   }
 }

@@ -251,7 +251,7 @@ export function ProjectTestsList({
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => router.push(`/history?testId=${test.id}`)}
+                onClick={() => router.push(`/tests/${test.id}`)}
               >
                 Voir résultats
               </Button>
