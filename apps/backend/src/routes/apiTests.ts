@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import OpenAI from "openai";
+import { authenticate } from "../middleware/auth";
 import { executeApiTestWithRetry } from "../runner/apirunner";
 import {
   buildApiTestGenerationPrompt,
@@ -18,12 +19,9 @@ const openai = new OpenAI({
  * GET /api/api-tests
  * List all API tests for the authenticated user
  */
-router.get("/", async (req: Request, res: Response) => {
+router.get("/", authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    const userId = req.userId!;
 
     const { projectId, status } = req.query;
 
@@ -87,19 +85,29 @@ router.get("/", async (req: Request, res: Response) => {
  * GET /api/api-tests/:id
  * Get a specific API test with all runs
  */
-router.get("/:id", async (req: Request, res: Response) => {
+router.get("/:id", authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    const userId = req.userId!;
 
     const { id } = req.params;
 
+    console.log(`[API Test Detail] User ${userId} requesting test ${id}`);
+
+    // First, check if test exists at all
+    const testExists = await prisma.apiTest.findUnique({
+      where: { id },
+      select: { id: true, userId: true, projectId: true },
+    });
+
+    console.log(`[API Test Detail] Test exists:`, testExists);
+
+    // Find test and verify access through project membership
     const apiTest = await prisma.apiTest.findFirst({
       where: {
         id,
-        userId,
+        project: {
+          OR: [{ createdBy: userId }, { members: { some: { userId } } }],
+        },
       },
       include: {
         project: true,
@@ -119,6 +127,11 @@ router.get("/:id", async (req: Request, res: Response) => {
       },
     });
 
+    console.log(
+      `[API Test Detail] Test found with access check:`,
+      apiTest ? "YES" : "NO"
+    );
+
     if (!apiTest) {
       return res.status(404).json({ error: "API test not found" });
     }
@@ -134,12 +147,9 @@ router.get("/:id", async (req: Request, res: Response) => {
  * POST /api/api-tests
  * Create a new API test
  */
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    const userId = req.userId!;
 
     const {
       name,
@@ -222,12 +232,9 @@ router.post("/", async (req: Request, res: Response) => {
  * POST /api/api-tests/generate
  * Generate API test configuration from natural language using AI
  */
-router.post("/generate", async (req: Request, res: Response) => {
+router.post("/generate", authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    const userId = req.userId!;
 
     const { prompt, apiEndpoint } = req.body;
 
@@ -291,12 +298,9 @@ router.post("/generate", async (req: Request, res: Response) => {
  * POST /api/api-tests/from-curl
  * Convert cURL command to API test configuration
  */
-router.post("/from-curl", async (req: Request, res: Response) => {
+router.post("/from-curl", authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    const userId = req.userId!;
 
     const { curlCommand } = req.body;
 
@@ -354,12 +358,9 @@ router.post("/from-curl", async (req: Request, res: Response) => {
  * POST /api/api-tests/:id/run
  * Execute an API test
  */
-router.post("/:id/run", async (req: Request, res: Response) => {
+router.post("/:id/run", authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    const userId = req.userId!;
 
     const { id } = req.params;
 
@@ -400,12 +401,9 @@ router.post("/:id/run", async (req: Request, res: Response) => {
  * PUT /api/api-tests/:id
  * Update an API test
  */
-router.put("/:id", async (req: Request, res: Response) => {
+router.put("/:id", authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    const userId = req.userId!;
 
     const { id } = req.params;
 
@@ -473,12 +471,9 @@ router.put("/:id", async (req: Request, res: Response) => {
  * DELETE /api/api-tests/:id
  * Delete an API test
  */
-router.delete("/:id", async (req: Request, res: Response) => {
+router.delete("/:id", authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    const userId = req.userId!;
 
     const { id } = req.params;
 
@@ -506,12 +501,9 @@ router.delete("/:id", async (req: Request, res: Response) => {
  * GET /api/api-tests/:id/runs
  * Get all runs for a specific API test
  */
-router.get("/:id/runs", async (req: Request, res: Response) => {
+router.get("/:id/runs", authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    const userId = req.userId!;
 
     const { id } = req.params;
     const { limit = "50", offset = "0" } = req.query;

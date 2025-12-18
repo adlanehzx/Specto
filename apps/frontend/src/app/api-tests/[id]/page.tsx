@@ -5,10 +5,12 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DashboardLayout from "@/components/DashboardLayout";
+import { useAuth } from "@/contexts/AuthContext";
 
 function ApiTestDetailPageContent() {
   const params = useParams();
   const router = useRouter();
+  const { token } = useAuth();
   const [test, setTest] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
@@ -17,37 +19,49 @@ function ApiTestDetailPageContent() {
   );
 
   useEffect(() => {
-    if (params.id) {
+    if (params.id && token) {
       fetchTest();
     }
-  }, [params.id]);
+  }, [params.id, token]);
 
   const fetchTest = async () => {
+    if (!token) return;
+
     try {
-      const response = await fetch(`/api/api-tests/${params.id}`, {
+      const API_URL =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      const response = await fetch(`${API_URL}/api/api-tests/${params.id}`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
       if (response.ok) {
         const data = await response.json();
         setTest(data);
+      } else {
+        console.error("Test not found:", response.status);
+        setTest(null);
       }
     } catch (error) {
       console.error("Error fetching test:", error);
+      setTest(null);
     } finally {
       setLoading(false);
     }
   };
 
   const runTest = async () => {
+    if (!token) return;
+
     setRunning(true);
     try {
-      await fetch(`/api/api-tests/${params.id}/run`, {
+      const API_URL =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      await fetch(`${API_URL}/api/api-tests/${params.id}/run`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       await fetchTest();
@@ -60,12 +74,15 @@ function ApiTestDetailPageContent() {
 
   const deleteTest = async () => {
     if (!confirm("Are you sure you want to delete this test?")) return;
+    if (!token) return;
 
     try {
-      await fetch(`/api/api-tests/${params.id}`, {
+      const API_URL =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      await fetch(`${API_URL}/api/api-tests/${params.id}`, {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       router.push("/api-tests");

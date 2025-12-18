@@ -99,20 +99,86 @@ router.post("/run-tests", async (req: Request, res: Response) => {
     // Prepare test execution tasks
     const tasks: Promise<TestRunResult>[] = [];
 
-    // Check if new format (array of test descriptions)
+    console.log("[CLI Debug]", {
+      hasTests: !!tests,
+      testsType: typeof tests,
+      isArray: Array.isArray(tests),
+      hasTunnel: !!tunnelUrl,
+      e2eTests: tests?.e2e?.length,
+      apiTests: tests?.api?.length,
+    });
+
+    // Check if new format with AI generation (array of tests with type field)
     if (Array.isArray(tests) && tests.length > 0 && tunnelUrl) {
-      // New format: generate and execute tests from descriptions
       for (const testDesc of tests) {
-        tasks.push(
-          executeTestFromDescription(
-            testDesc,
-            tunnelUrl,
-            project.id,
-            userId,
-            runId,
-            options
-          )
-        );
+        if (!testDesc.description) continue;
+
+        if (testDesc.type === "e2e") {
+          tasks.push(
+            executeTestFromDescription(
+              testDesc,
+              tunnelUrl,
+              project.id,
+              userId,
+              runId,
+              options
+            )
+          );
+        } else if (testDesc.type === "api") {
+          tasks.push(
+            executeApiTestFromDescription(
+              testDesc,
+              tunnelUrl,
+              project.id,
+              userId,
+              runId,
+              options
+            )
+          );
+        }
+      }
+    }
+    // Check if new format with descriptions (object with e2e/api arrays)
+    else if (
+      tests &&
+      typeof tests === "object" &&
+      !Array.isArray(tests) &&
+      tunnelUrl
+    ) {
+      // New format: generate and execute E2E tests from descriptions
+      if (tests.e2e && Array.isArray(tests.e2e) && tests.e2e.length > 0) {
+        for (const testDesc of tests.e2e) {
+          if (testDesc.description) {
+            tasks.push(
+              executeTestFromDescription(
+                { ...testDesc, type: "e2e" },
+                tunnelUrl,
+                project.id,
+                userId,
+                runId,
+                options
+              )
+            );
+          }
+        }
+      }
+
+      // New format: generate and execute API tests from descriptions
+      if (tests.api && Array.isArray(tests.api) && tests.api.length > 0) {
+        for (const testDesc of tests.api) {
+          if (testDesc.description) {
+            tasks.push(
+              executeApiTestFromDescription(
+                testDesc,
+                tunnelUrl,
+                project.id,
+                userId,
+                runId,
+                options
+              )
+            );
+          }
+        }
       }
     }
     // Legacy format
@@ -446,6 +512,13 @@ async function executeTestFromDescription(
   const startTime = Date.now();
 
   try {
+    // Reject API tests - they should use executeApiTestFromDescription
+    if (testDesc.url?.startsWith("/api/") || testDesc.type === "api") {
+      throw new Error(
+        `executeTestFromDescription ne peut pas gérer les tests API. Utilisez executeApiTestFromDescription pour: ${testDesc.url}`
+      );
+    }
+
     const { buildLLMRequest } = await import("../llm/promptBuilder");
     const axios = await import("axios");
     // Create or find the test in the database
@@ -502,6 +575,13 @@ async function executeTestFromDescription(
       headless: true,
       timeout: options?.timeout || 30000,
     });
+
+    console.log(`[AI Test Result] Test "${testDesc.name}":`, {
+      status: result.status,
+      duration: result.duration,
+      errorMessage: result.errorMessage,
+    });
+
     // Save test result to database
     await prisma.result.create({
       data: {
@@ -529,6 +609,172 @@ async function executeTestFromDescription(
       duration: Date.now() - startTime,
       error: error.message,
       runId,
+    };
+  }
+}
+
+/**
+ * Helper: Execute API test from natural language description
+ * Generates API test code with AI and executes it
+ */
+async function executeApiTestFromDescription(
+  testDesc: { name: string; url: string; description: string },
+  tunnelUrl: string,
+  projectId: string,
+  userId: string,
+  runId: string,
+  options: any
+): Promise<TestRunResult> {
+  const startTime = Date.now();
+
+  try {
+    const { buildApiTestRequest } = await import("../llm/promptBuilder");
+    const axios = await import("axios");
+
+    // Create or find the API test in the database
+    let apiTest = await prisma.apiTest.findFirst({
+      where: {
+        projectId,
+        url: testDesc.url,
+        name: testDesc.name,
+      },
+    });
+
+    if (!apiTest) {
+      apiTest = await prisma.apiTest.create({
+        data: {
+          name: testDesc.name,
+          url: testDesc.url,
+          method: "GET", // Default, l'IA décidera
+          projectId,
+          userId,
+        },
+      });
+    }
+
+    // Generate API test code with LLM
+    const fullUrl = `${tunnelUrl}${testDesc.url}`;
+    const llmRequest = buildApiTestRequest(testDesc.description, fullUrl);
+
+    // Call OpenAI/LLM service
+    const llmResponse = await axios.default.post(
+      "https://api.openai.com/v1/chat/completions",
+      llmRequest,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    let generatedCode = llmResponse.data.choices[0].message.content;
+
+    // Strip markdown code blocks if present
+    const codeBlockMatch = generatedCode.match(
+      /```(?:javascript|js)?\s*\n([\s\S]*?)\n```/
+    );
+    if (codeBlockMatch) {
+      generatedCode = codeBlockMatch[1];
+    }
+
+    console.log(
+      `[AI API Test Generation] Generated code for "${testDesc.name}":`
+    );
+    console.log("=".repeat(80));
+    console.log(generatedCode);
+    console.log("=".repeat(80));
+
+    // Extract HTTP method from generated code
+    let detectedMethod = "GET";
+    const methodMatch =
+      generatedCode.match(/method:\s*['"](\w+)['"]/i) ||
+      generatedCode.match(/axios\.(get|post|put|delete|patch)\(/i);
+    if (methodMatch) {
+      detectedMethod = methodMatch[1].toUpperCase();
+    }
+
+    // Update the API test with detected method
+    await prisma.apiTest.update({
+      where: { id: apiTest.id },
+      data: { method: detectedMethod },
+    });
+
+    // Execute the generated API test code
+    const result = await executeApiTestCode(generatedCode, options);
+
+    console.log(`[AI API Test Result] Test "${testDesc.name}":`, {
+      status: result.status,
+      duration: result.duration,
+      errorMessage: result.error,
+    });
+
+    // Save API test result to database
+    await prisma.apiTestRun.create({
+      data: {
+        apiTestId: apiTest.id,
+        requestUrl: fullUrl,
+        requestMethod: detectedMethod, // Méthode détectée du code généré
+        status: result.status === "passed" ? "success" : "failure",
+        duration: result.duration,
+        error: result.error || null,
+        responseTime: result.duration,
+      },
+    });
+
+    return {
+      testId: apiTest.id,
+      testName: testDesc.name,
+      type: "api",
+      status: result.status,
+      duration: result.duration,
+      error: result.error,
+      runId,
+    };
+  } catch (error: any) {
+    return {
+      testId: `generated-api-error`,
+      testName: testDesc.name,
+      type: "api",
+      status: "failed",
+      duration: Date.now() - startTime,
+      error: error.message,
+      runId,
+    };
+  }
+}
+
+/**
+ * Helper: Execute API test code generated by AI
+ */
+async function executeApiTestCode(
+  code: string,
+  options: any
+): Promise<{ status: "passed" | "failed"; duration: number; error?: string }> {
+  const startTime = Date.now();
+
+  try {
+    // Create a function from the generated code
+    const AsyncFunction = Object.getPrototypeOf(
+      async function () {}
+    ).constructor;
+    const testFunction = new AsyncFunction("axios", "assert", code);
+
+    const axios = await import("axios");
+    const assert = await import("assert");
+
+    // Execute the test
+    await testFunction(axios.default, assert.default);
+
+    return {
+      status: "passed",
+      duration: Date.now() - startTime,
+    };
+  } catch (error: any) {
+    return {
+      status: "failed",
+      duration: Date.now() - startTime,
+      error: error.message,
     };
   }
 }

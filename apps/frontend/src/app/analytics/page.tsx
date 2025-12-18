@@ -400,10 +400,7 @@ export default function AnalyticsPage() {
                         const date = new Date(value as string);
                         return date.toLocaleDateString();
                       }}
-                      formatter={(value: number) => [
-                        `${value}ms`,
-                        "Avg Duration",
-                      ]}
+                      formatter={(value) => [`${value || 0}ms`, "Avg Duration"]}
                     />
                     <Legend />
                     <Bar
@@ -488,7 +485,7 @@ export default function AnalyticsPage() {
                           const date = new Date(value as string);
                           return date.toLocaleDateString();
                         }}
-                        formatter={(value: number) => [`${value}%`, "Coverage"]}
+                        formatter={(value) => [`${value || 0}%`, "Coverage"]}
                       />
                       <Legend />
                       <Line

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useParams } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useProject } from "@/hooks/useProjects";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/Button";
@@ -24,14 +24,23 @@ import Link from "next/link";
 
 function ProjectDetailPageContent() {
   const params = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const projectId = params.id as string;
   const { project, isLoading, mutate } = useProject(projectId);
   const { user } = useAuth();
 
   const [activeTab, setActiveTab] = useState<"tests" | "members" | "settings">(
-    "members"
+    (searchParams.get("tab") as "tests" | "members" | "settings") || "tests"
   );
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+
+  // Synchroniser l'onglet actif avec l'URL
+  useEffect(() => {
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.set("tab", activeTab);
+    router.replace(newUrl.pathname + newUrl.search, { scroll: false });
+  }, [activeTab, router]);
 
   const userRole = user && project ? getUserRole(project, user.id) : null;
   const canInviteMembers = userRole ? canInvite(userRole) : false;

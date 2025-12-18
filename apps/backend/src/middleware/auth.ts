@@ -36,21 +36,37 @@ export const authenticate = async (
   try {
     // Récupérer le token depuis le header Authorization
     const authHeader = req.headers.authorization;
+    console.log(
+      "[Auth] Path:",
+      req.path,
+      "Authorization header:",
+      authHeader ? "Present" : "Missing"
+    );
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      console.log("[Auth] Unauthorized - No valid auth header");
+      console.log("[Auth] Full auth header:", authHeader);
       return res.status(401).json({
         error: "Non authentifié - Token manquant",
       });
     }
 
     const token = authHeader.substring(7); // Enlever "Bearer "
+    console.log(
+      "[Auth] Token extracted, length:",
+      token.length,
+      "starts with:",
+      token.substring(0, 10)
+    );
 
     // Vérifier si c'est une API key (commence par "ley_")
     if (token.startsWith("ley_")) {
+      console.log("[Auth] API Key detected");
       return await authenticateWithApiKey(token, req, res, next);
     }
 
     // Sinon, c'est un JWT token
+    console.log("[Auth] JWT detected, verifying...");
     return authenticateWithJWT(token, req, res, next);
   } catch (error: any) {
     console.error("Authentication error:", error);
@@ -85,6 +101,7 @@ function authenticateWithJWT(
       email: decoded.email,
     };
 
+    console.log("[Auth] JWT verified successfully for user:", decoded.userId);
     next();
   } catch (error: any) {
     if (error.name === "JsonWebTokenError") {

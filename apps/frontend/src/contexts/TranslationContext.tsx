@@ -576,18 +576,10 @@ export function TranslationProvider({
 
     // If user preferences are loaded, use them
     if (preferences?.language) {
-      console.log(
-        "[Translation] Loading language from preferences:",
-        preferences.language
-      );
       setLocaleState(preferences.language);
     } else {
       // Fallback to localStorage
       const savedLocale = localStorage.getItem("locale") as Locale;
-      console.log(
-        "[Translation] Loading language from localStorage:",
-        savedLocale
-      );
       if (savedLocale === "en" || savedLocale === "fr") {
         setLocaleState(savedLocale);
       }
@@ -603,11 +595,9 @@ export function TranslationProvider({
 
   const t = (key: string): string => {
     if (!mounted) {
-      console.log("[Translation] Not mounted yet, returning key:", key);
       return key;
     }
 
-    console.log(`[Translation] Translating "${key}" with locale "${locale}"`);
     const keys = key.split(".");
     let value: any = translations[locale];
 
@@ -615,13 +605,11 @@ export function TranslationProvider({
       if (value && typeof value === "object") {
         value = value[k];
       } else {
-        console.log(`[Translation] Key not found: ${key}`);
         return key;
       }
     }
 
     const result = typeof value === "string" ? value : key;
-    console.log(`[Translation] Result: "${result}"`);
     return result;
   };
 

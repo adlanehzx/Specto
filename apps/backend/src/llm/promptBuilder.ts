@@ -142,3 +142,221 @@ export function buildLLMRequest(promptUser: string, url: string) {
     max_tokens: 2000,
   };
 }
+
+/**
+ * Construit un prompt pour générer du code de test API
+ */
+export function buildApiTestPrompt(description: string, url: string): string {
+  return `Tu es un expert en tests d'API REST avec JavaScript.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️⚠️⚠️ URL À UTILISER (COPIE EXACTEMENT) ⚠️⚠️⚠️
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${url}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**RÈGLE ABSOLUE #1:**
+- TU DOIS utiliser l'URL ci-dessus: ${url}
+- NE JAMAIS inventer une URL
+- NE JAMAIS utiliser api.example.com, example-tunnel.com, ou toute autre URL
+- Si tu vois "example" dans ton code, c'est UNE ERREUR FATALE
+- COPIE: ${url}
+
+**FORMAT REQUIS:**
+Le code DOIT utiliser axios pour les requêtes et assert pour les vérifications.
+**IMPORTANT: axios et assert sont DÉJÀ DISPONIBLES - NE PAS les importer ou déclarer !**
+
+\`\`\`javascript
+// ⚠️ URL À UTILISER: ${url}
+const response = await axios({
+  method: 'GET', // ou POST, PUT, DELETE
+  url: '${url}',
+  // headers si nécessaire:
+  headers: { 'Content-Type': 'application/json' },
+  // data si POST/PUT:
+  data: { key: 'value' }
+});
+
+// Vérifications (assert est déjà disponible)
+assert.strictEqual(response.status, 200, 'Status code devrait être 200');
+assert.ok(response.data, 'Response devrait contenir des données');
+// Autres assertions...
+\`\`\`
+
+**RÈGLES STRICTES:**
+
+1. **Déterminer automatiquement:**
+   - La méthode HTTP (GET, POST, PUT, DELETE) selon le contexte
+   - Le body (data) si nécessaire pour POST/PUT
+   - Les headers nécessaires (Content-Type, etc.)
+   - Les paramètres de query string si nécessaire
+
+2. **Assertions Complètes:**
+   - Vérifier le status code HTTP
+   - Vérifier la structure de la réponse
+   - Vérifier les champs attendus et leurs valeurs
+   - Vérifier les types de données
+
+3. **Gestion d'erreurs:**
+   - Utiliser try/catch si des erreurs sont attendues
+   - Vérifier les codes d'erreur appropriés (400, 404, 500, etc.)
+
+4. **Code propre:**
+   - Commentaires clairs pour chaque étape
+   - Variables descriptives
+   - Pas de code inutile
+
+**EXEMPLES:**
+
+**Exemple 1 - GET simple:**
+Description: "Vérifie que l'endpoint /api/health retourne status 'ok'"
+URL fournie: https://example-tunnel.com/api/health
+
+\`\`\`javascript
+// ⚠️ IMPORTANT: Utilise l'URL FOURNIE, pas api.example.com !
+const response = await axios.get('https://example-tunnel.com/api/health');
+
+// Vérifier le status code
+assert.strictEqual(response.status, 200, 'API devrait répondre avec 200');
+
+// Vérifier la structure de la réponse
+assert.ok(response.data.status, 'Response devrait contenir un champ status');
+assert.strictEqual(response.data.status, 'ok', 'Status devrait être "ok"');
+\`\`\`
+
+**Exemple 2 - POST avec body:**
+Description: "Crée un utilisateur avec nom 'John' et email 'john@test.com'"
+URL fournie: https://example-tunnel.com/api/users
+
+\`\`\`javascript
+// Préparer les données
+const userData = {
+  name: 'John',
+  email: 'john@test.com'
+};
+
+// ⚠️ IMPORTANT: Utilise l'URL FOURNIE dans la variable url !
+const response = await axios({
+  method: 'POST',
+  url: 'https://example-tunnel.com/api/users',
+  headers: { 'Content-Type': 'application/json' },
+  data: userData
+});
+
+// Vérifier le status code (201 Created)
+assert.strictEqual(response.status, 201, 'Devrait retourner 201 Created');
+
+// Extraire les données (gérer {success: true, data: {...}} ou données directes)
+const createdUser = response.data.data || response.data;
+
+// Vérifier que la réponse contient un ID
+assert.ok(createdUser.id, 'Response devrait contenir un ID généré');
+assert.ok(typeof createdUser.id === 'number', 'ID devrait être un nombre');
+
+// Vérifier que les données sont correctes
+assert.strictEqual(createdUser.name, userData.name, 'Nom devrait correspondre');
+assert.strictEqual(createdUser.email, userData.email, 'Email devrait correspondre');
+\`\`\`
+
+**Exemple 3 - GET avec vérification de liste:**
+Description: "Récupère la liste des produits et vérifie qu'il y en a au moins 5"
+URL fournie: https://example-tunnel.com/api/products
+
+\`\`\`javascript
+// ⚠️ IMPORTANT: Utilise l'URL FOURNIE !
+const response = await axios.get('https://example-tunnel.com/api/products');
+
+// Vérifier le status code
+assert.strictEqual(response.status, 200);
+
+// ⚠️ IMPORTANT: Gérer les différents formats de réponse
+// Si réponse wrappée: {success: true, data: [...]}
+const products = response.data.data || response.data;
+
+// Vérifier que la réponse est un tableau
+assert.ok(Array.isArray(products), 'Response devrait être un tableau');
+
+// Vérifier le nombre minimum de produits
+assert.ok(products.length >= 5, \`Devrait avoir au moins 5 produits, trouvé \${products.length}\`);
+
+// Vérifier la structure du premier produit
+const firstProduct = products[0];
+assert.ok(firstProduct.id, 'Produit devrait avoir un ID');
+assert.ok(firstProduct.name, 'Produit devrait avoir un nom');
+assert.ok(firstProduct.price !== undefined, 'Produit devrait avoir un prix');
+\`\`\`
+
+**Exemple 4 - GET avec données wrappées:**
+Description: "Récupère un utilisateur et vérifie son nom"
+URL fournie: https://example-tunnel.com/api/users/1
+
+\`\`\`javascript
+// ⚠️ IMPORTANT: Utilise l'URL FOURNIE !
+const response = await axios.get('https://example-tunnel.com/api/users/1');
+
+// Vérifier le status code
+assert.strictEqual(response.status, 200);
+
+// Extraire les données (gérer {success: true, data: {...}} ou données directes)
+const user = response.data.data || response.data;
+
+// Vérifications
+assert.ok(user.id, 'User devrait avoir un ID');
+assert.strictEqual(user.id, 1, 'ID devrait être 1');
+assert.ok(user.name, 'User devrait avoir un nom');
+assert.ok(user.email, 'User devrait avoir un email');
+\`\`\`
+
+**━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+**MAINTENANT, GÉNÈRE LE TEST POUR CES PARAMÈTRES:**
+**━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+Description: "${description}"
+URL À UTILISER: ${url}
+
+**⚠️ ATTENTION CRITIQUE:**
+- Les exemples ci-dessus utilisent "example-tunnel.com" pour ILLUSTRATION uniquement
+- TU DOIS utiliser l'URL RÉELLE fournie ci-dessus: ${url}
+- NE JAMAIS copier api.example.com ou example-tunnel.com
+- Copie EXACTEMENT l'URL fournie dans ton code
+
+**RÈGLES STRICTES:**
+
+1. **URL OBLIGATOIRE**: Utilise ${url} tel quel dans ton code
+   
+2. **Format de réponse**: Gérer les deux formats:
+   - Données directes: \`response.data\`
+   - Données wrappées: \`response.data.data\`
+   - Utilise: \`const data = response.data.data || response.data;\`
+
+3. **Code JavaScript uniquement**:
+   - Retourne UNIQUEMENT le code exécutable
+   - NE PAS entourer de \`\`\`javascript
+   - Pas d'explication
+
+4. **Pas d'imports**:
+   - axios et assert sont déjà disponibles
+   - Utilise directement axios() et assert.strictEqual()
+
+5. **Méthode HTTP**:
+   - Détermine automatiquement (GET, POST, PUT, DELETE)
+   - Ajoute body si nécessaire
+`;
+}
+
+/**
+ * Construit la requête LLM pour générer un test API
+ */
+export function buildApiTestRequest(description: string, url: string) {
+  return {
+    model: "gpt-4",
+    messages: [
+      {
+        role: "system",
+        content: buildApiTestPrompt(description, url),
+      },
+    ],
+    temperature: 0.1, // Très bas pour cohérence maximale et respect strict de l'URL
+    max_tokens: 1500,
+  };
+}
