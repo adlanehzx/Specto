@@ -10,6 +10,7 @@ import { executeApiTestWithRetry } from "../runner/apirunner";
 import { addTestToQueue } from "../queue";
 import { executePerformanceTest } from "../runner/k6runner";
 import { executeSecurityTest } from "../runner/securityrunner";
+import { executeSmokeTest } from "../runner/smokerunner";
 import { authenticate } from "../middleware/auth";
 
 const router = express.Router();
@@ -111,9 +112,7 @@ router.post("/run-tests", async (req: Request, res: Response) => {
     // Check if new format with AI generation (array of tests with type field)
     if (Array.isArray(tests) && tests.length > 0 && tunnelUrl) {
       for (const testDesc of tests) {
-        if (!testDesc.description) continue;
-
-        if (testDesc.type === "e2e") {
+        if (testDesc.type === "e2e" && testDesc.description) {
           tasks.push(
             executeTestFromDescription(
               testDesc,
@@ -124,9 +123,20 @@ router.post("/run-tests", async (req: Request, res: Response) => {
               options
             )
           );
-        } else if (testDesc.type === "api") {
+        } else if (testDesc.type === "api" && testDesc.description) {
           tasks.push(
             executeApiTestFromDescription(
+              testDesc,
+              tunnelUrl,
+              project.id,
+              userId,
+              runId,
+              options
+            )
+          );
+        } else if (testDesc.type === "smoke" && testDesc.urls) {
+          tasks.push(
+            executeSmokeTestFromDescription(
               testDesc,
               tunnelUrl,
               project.id,
@@ -170,6 +180,24 @@ router.post("/run-tests", async (req: Request, res: Response) => {
             tasks.push(
               executeApiTestFromDescription(
                 testDesc,
+                tunnelUrl,
+                project.id,
+                userId,
+                runId,
+                options
+              )
+            );
+          }
+        }
+      }
+
+      // New format: execute smoke tests from URLs array
+      if (tests.smoke && Array.isArray(tests.smoke) && tests.smoke.length > 0) {
+        for (const smokeDesc of tests.smoke) {
+          if (smokeDesc.urls && Array.isArray(smokeDesc.urls)) {
+            tasks.push(
+              executeSmokeTestFromDescription(
+                smokeDesc,
                 tunnelUrl,
                 project.id,
                 userId,
@@ -418,7 +446,7 @@ router.get("/tests", async (req: Request, res: Response) => {
     }
 
     // Get all tests
-    const [e2eTests, apiTests, performanceTests, securityTests] =
+    const [e2eTests, apiTests, smokeTests, performanceTests, securityTests] =
       await Promise.all([
         prisma.test.findMany({
           where: { projectId },
@@ -436,6 +464,15 @@ router.get("/tests", async (req: Request, res: Response) => {
             name: true,
             url: true,
             method: true,
+          },
+          orderBy: { createdAt: "asc" },
+        }),
+        prisma.smokeTest.findMany({
+          where: { projectId },
+          select: {
+            id: true,
+            name: true,
+            endpoints: true,
           },
           orderBy: { createdAt: "asc" },
         }),
@@ -475,6 +512,11 @@ router.get("/tests", async (req: Request, res: Response) => {
           name: test.name,
           url: test.url,
           method: test.method,
+        })),
+        smoke: smokeTests.map((test: any) => ({
+          id: test.id,
+          name: test.name,
+          endpoints: (test.endpoints as any[])?.length || 0,
         })),
         performance: performanceTests.map((test: any) => ({
           id: test.id,
@@ -736,6 +778,80 @@ async function executeApiTestFromDescription(
       testId: `generated-api-error`,
       testName: testDesc.name,
       type: "api",
+      status: "failed",
+      duration: Date.now() - startTime,
+      error: error.message,
+      runId,
+    };
+  }
+}
+
+/**
+ * Helper: Execute smoke test from description
+ * Creates smoke test in DB with URLs and executes it
+ */
+async function executeSmokeTestFromDescription(
+  smokeDesc: { name: string; urls: string[] },
+  tunnelUrl: string,
+  projectId: string,
+  userId: string,
+  runId: string,
+  options: any
+): Promise<TestRunResult> {
+  const startTime = Date.now();
+
+  try {
+    console.log(`[Smoke Test CLI] Creating smoke test: ${smokeDesc.name}`);
+
+    // Build full URLs from tunnel
+    const endpoints = smokeDesc.urls.map((url) => ({
+      url: `${tunnelUrl}${url}`,
+      method: "GET" as const,
+      expectedStatus: 200,
+      timeout: options?.timeout || 10000,
+    }));
+
+    // Create smoke test in database
+    const smokeTest = await prisma.smokeTest.create({
+      data: {
+        name: smokeDesc.name,
+        endpoints: endpoints as any,
+        timeout: options?.timeout || 10000,
+        userId,
+        projectId,
+      },
+    });
+
+    console.log(`[Smoke Test CLI] Executing smoke test: ${smokeTest.id}`);
+
+    // Execute smoke test
+    const smokeRunId = await executeSmokeTest(smokeTest.id);
+
+    // Get the run result
+    const smokeRun = await prisma.smokeTestRun.findUnique({
+      where: { id: smokeRunId },
+    });
+
+    console.log(`[Smoke Test CLI] Test "${smokeDesc.name}":`, {
+      status: smokeRun?.status,
+      successfulChecks: smokeRun?.successfulChecks,
+      totalEndpoints: smokeRun?.totalEndpoints,
+    });
+
+    return {
+      testId: smokeTest.id,
+      testName: smokeDesc.name,
+      type: "smoke" as any,
+      status: smokeRun?.status === "success" ? "passed" : "failed",
+      duration: Date.now() - startTime,
+      error: smokeRun?.status === "failed" ? "Some endpoints failed" : undefined,
+      runId,
+    };
+  } catch (error: any) {
+    return {
+      testId: `generated-smoke-error`,
+      testName: smokeDesc.name,
+      type: "smoke" as any,
       status: "failed",
       duration: Date.now() - startTime,
       error: error.message,

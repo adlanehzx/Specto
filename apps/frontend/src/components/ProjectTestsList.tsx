@@ -38,9 +38,10 @@ export function ProjectTestsList({
   const { token } = useAuth();
   const [tests, setTests] = useState<Test[]>([]);
   const [apiTests, setApiTests] = useState<any[]>([]);
+  const [smokeTests, setSmokeTests] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [testType, setTestType] = useState<"e2e" | "api">("e2e");
+  const [testType, setTestType] = useState<"e2e" | "api" | "smoke">("e2e");
 
   const fetchTests = async () => {
     try {
@@ -74,6 +75,16 @@ export function ProjectTestsList({
         }
       );
 
+      // Fetch Smoke tests
+      const smokeResponse = await fetch(
+        `${apiUrl}/api/smoke-tests?projectId=${projectId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       if (e2eResponse.ok) {
         const e2eData = await e2eResponse.json();
         console.log("E2E tests loaded:", e2eData.length, "tests");
@@ -90,7 +101,15 @@ export function ProjectTestsList({
         console.error("API tests: Authentication failed");
       }
 
-      if (!e2eResponse.ok && !apiResponse.ok) {
+      if (smokeResponse.ok) {
+        const smokeData = await smokeResponse.json();
+        console.log("Smoke tests loaded:", smokeData.length, "tests");
+        setSmokeTests(smokeData);
+      } else if (smokeResponse.status === 401) {
+        console.error("Smoke tests: Authentication failed");
+      }
+
+      if (!e2eResponse.ok && !apiResponse.ok && !smokeResponse.ok) {
         throw new Error("Erreur lors du chargement des tests");
       }
     } catch (err: any) {
@@ -207,7 +226,8 @@ export function ProjectTestsList({
 
   const displayedTests = testType === "e2e" ? tests : [];
   const displayedApiTests = testType === "api" ? apiTests : [];
-  const hasNoTests = tests.length === 0 && apiTests.length === 0;
+  const displayedSmokeTests = testType === "smoke" ? smokeTests : [];
+  const hasNoTests = tests.length === 0 && apiTests.length === 0 && smokeTests.length === 0;
 
   console.log("ProjectTestsList render:", {
     testType,
@@ -247,6 +267,16 @@ export function ProjectTestsList({
           }`}
         >
           Tests E2E ({tests.length})
+        </button>
+        <button
+          onClick={() => setTestType("smoke")}
+          className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+            testType === "smoke"
+              ? "bg-indigo-100 text-indigo-700"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+        >
+          Tests Smoke ({smokeTests.length})
         </button>
         <button
           onClick={() => setTestType("api")}
@@ -407,6 +437,81 @@ export function ProjectTestsList({
                         )
                       ) {
                         // TODO: Implémenter la suppression des tests API
+                      }
+                    }}
+                    className="flex items-center gap-1"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+
+      {/* Tests Smoke */}
+      {testType === "smoke" &&
+        displayedSmokeTests.map((test: any) => (
+          <div
+            key={test.id}
+            className="bg-white border border-gray-200 rounded-lg p-6 hover:border-indigo-300 transition-colors"
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">
+                    {test.name}
+                  </h3>
+                  {test.runs?.[0] && getStatusBadge(test.runs[0].status)}
+                  <Badge className="bg-purple-100 text-purple-800 border-purple-200">
+                    {(test.endpoints as any[])?.length || 0} endpoints
+                  </Badge>
+                </div>
+
+                <p className="text-sm text-gray-600 mb-3">
+                  Health check test
+                </p>
+
+                <div className="flex items-center gap-4 text-xs text-gray-500">
+                  <div className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    <span>
+                      Créé le{" "}
+                      {new Date(test.createdAt).toLocaleDateString("fr-FR")}
+                    </span>
+                  </div>
+                  {test.runs && test.runs.length > 0 && (
+                    <>
+                      <span>{test.runs.length} exécutions</span>
+                      {test.runs[0]?.successfulChecks !== undefined && (
+                        <span className="text-green-600">
+                          {test.runs[0].successfulChecks}/{test.runs[0].totalEndpoints} checks OK
+                        </span>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 ml-4">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => router.push(`/smoke-tests/${test.id}`)}
+                >
+                  Voir résultats
+                </Button>
+                {canEdit && (
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => {
+                      if (
+                        confirm(
+                          "Êtes-vous sûr de vouloir supprimer ce test smoke ?"
+                        )
+                      ) {
+                        // TODO: Implémenter la suppression des tests smoke
                       }
                     }}
                     className="flex items-center gap-1"

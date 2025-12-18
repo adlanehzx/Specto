@@ -466,6 +466,11 @@ export async function test(options: {
     const tunnelUrl = await tunnel.createTunnel(port, 30000);
     console.log(chalk.green(`✓ Tunnel created: ${tunnelUrl}\n`));
 
+    // Wait for tunnel DNS to propagate (Cloudflare needs time)
+    console.log(chalk.gray("⏳ Waiting for tunnel DNS propagation..."));
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    console.log(chalk.green("✓ Tunnel ready\n"));
+
     // Get tests from config and flatten them
     const tests = config.tests || {};
     const allTests: any[] = [];

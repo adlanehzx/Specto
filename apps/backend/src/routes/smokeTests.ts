@@ -6,6 +6,7 @@
 import { Router } from "express";
 import { PrismaClient } from "@prisma/client";
 import OpenAI from "openai";
+import { authenticate } from "../middleware/auth";
 import {
   buildSmokeTestGenerationPrompt,
   buildSmokeTestFromDocsPrompt,
@@ -22,6 +23,9 @@ import {
 
 const router = Router();
 const prisma = new PrismaClient();
+
+// Apply authentication to all routes
+router.use(authenticate);
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -39,11 +43,26 @@ router.get("/", async (req, res) => {
 
     const { projectId } = req.query;
 
+    let whereClause: any = {};
+
+    if (projectId) {
+      // Project-based access: show tests in projects user owns or is member of
+      whereClause = {
+        projectId: projectId as string,
+        project: {
+          OR: [
+            { createdBy: userId },
+            { members: { some: { userId } } }
+          ]
+        }
+      };
+    } else {
+      // No project specified: show only user's own tests
+      whereClause = { userId };
+    }
+
     const smokeTests = await prisma.smokeTest.findMany({
-      where: {
-        userId,
-        ...(projectId && { projectId: projectId as string }),
-      },
+      where: whereClause,
       include: {
         project: {
           select: {
