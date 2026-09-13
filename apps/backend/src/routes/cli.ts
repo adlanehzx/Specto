@@ -145,6 +145,16 @@ router.post("/run-tests", async (req: Request, res: Response) => {
               options
             )
           );
+        } else if (testDesc.type === "unit" && testDesc.description) {
+          tasks.push(
+            executeUnitTestFromDescription(
+              testDesc,
+              project.id,
+              userId,
+              runId,
+              options
+            )
+          );
         }
       }
     }
@@ -844,7 +854,8 @@ async function executeSmokeTestFromDescription(
       type: "smoke" as any,
       status: smokeRun?.status === "success" ? "passed" : "failed",
       duration: Date.now() - startTime,
-      error: smokeRun?.status === "failed" ? "Some endpoints failed" : undefined,
+      error:
+        smokeRun?.status === "failed" ? "Some endpoints failed" : undefined,
       runId,
     };
   } catch (error: any) {
@@ -856,6 +867,218 @@ async function executeSmokeTestFromDescription(
       duration: Date.now() - startTime,
       error: error.message,
       runId,
+    };
+  }
+}
+
+/**
+ * Generate + Execute Unit test from description
+ */
+async function executeUnitTestFromDescription(
+  unitDesc: {
+    name: string;
+    description: string;
+    filePath: string;
+    functionName: string;
+  },
+  projectId: string,
+  userId: string,
+  runId: string,
+  options: any
+): Promise<any> {
+  const startTime = Date.now();
+  try {
+    // 1. Create Unit test in DB
+    const unitTest = await prisma.unitTest.create({
+      data: {
+        name: unitDesc.name,
+        filePath: unitDesc.filePath,
+        functionName: unitDesc.functionName,
+        code: "", // Will be filled by AI
+        projectId,
+        createdBy: userId,
+      },
+    });
+
+    // 2. Generate unit test code with AI
+    const systemPrompt = `Tu es un expert en tests unitaires JavaScript/TypeScript.
+Génère du code de test unitaire Jest/Vitest pour la fonction spécifiée.
+Le code doit:
+- Importer la fonction à tester
+- Créer des test cases complets avec describe/it
+- Tester les cas normaux ET les cas limites
+- Utiliser expect() pour les assertions
+- Être prêt à exécuter directement
+
+Retourne UNIQUEMENT le code du test, sans explications.`;
+
+    const userPrompt = `Fonction à tester: ${unitDesc.functionName}
+Fichier: ${unitDesc.filePath}
+Description: ${unitDesc.description}
+
+Génère un test unitaire complet.`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      temperature: 0.3,
+    });
+
+    let generatedCode = completion.choices[0]?.message?.content || "";
+    
+    // Clean code blocks if present
+    generatedCode = generatedCode
+      .replace(/```(?:javascript|typescript|js|ts)?\n?/g, "")
+      .replace(/```\n?/g, "")
+      .trim();
+
+    // Update unit test with generated code
+    await prisma.unitTest.update({
+      where: { id: unitTest.id },
+      data: { code: generatedCode },
+    });
+
+    // 3. Execute the unit test
+    const result = await executeUnitTestCode(
+      generatedCode,
+      unitDesc.filePath,
+      options
+    );
+
+    // 4. Create test run result
+    const unitRun = await prisma.unitTestRun.create({
+      data: {
+        unitTestId: unitTest.id,
+        status: result.status === "passed" ? "success" : "failed",
+        duration: result.duration,
+        error: result.error || null,
+        runId,
+      },
+    });
+
+    return {
+      testId: unitTest.id,
+      testName: unitDesc.name,
+      type: "unit" as any,
+      status: result.status,
+      duration: result.duration,
+      error: result.error,
+      runId,
+    };
+  } catch (error: any) {
+    return {
+      testId: `generated-unit-error`,
+      testName: unitDesc.name,
+      type: "unit" as any,
+      status: "failed",
+      duration: Date.now() - startTime,
+      error: error.message,
+      runId,
+    };
+  }
+}
+
+/**
+ * Helper: Execute unit test code
+ */
+async function executeUnitTestCode(
+  code: string,
+  filePath: string,
+  options: any
+): Promise<{ status: "passed" | "failed"; duration: number; error?: string }> {
+  const startTime = Date.now();
+  
+  try {
+    const fs = require("fs");
+    const path = require("path");
+    const { exec } = require("child_process");
+    const { promisify } = require("util");
+    const execPromise = promisify(exec);
+
+    // Create temp directory for test execution
+    const tmpDir = path.join(process.cwd(), "tmp", `unit-test-${Date.now()}`);
+    fs.mkdirSync(tmpDir, { recursive: true });
+
+    // Write test file
+    const testFilePath = path.join(tmpDir, "test.spec.js");
+    
+    // Add require path resolution for the function being tested
+    const wrappedCode = `
+// Mock or require the actual file path if needed
+// For now, assume function is available or mocked
+${code}
+`;
+    
+    fs.writeFileSync(testFilePath, wrappedCode);
+
+    // Write package.json for Jest
+    const packageJson = {
+      name: "temp-unit-test",
+      version: "1.0.0",
+      scripts: {
+        test: "jest --colors --verbose"
+      },
+      dependencies: {},
+      devDependencies: {
+        jest: "^29.7.0"
+      }
+    };
+    fs.writeFileSync(
+      path.join(tmpDir, "package.json"),
+      JSON.stringify(packageJson, null, 2)
+    );
+
+    // Write Jest config
+    const jestConfig = {
+      testEnvironment: "node",
+      testMatch: ["**/*.spec.js"],
+      verbose: true
+    };
+    fs.writeFileSync(
+      path.join(tmpDir, "jest.config.js"),
+      `module.exports = ${JSON.stringify(jestConfig, null, 2)};`
+    );
+
+    // Install dependencies (Jest)
+    console.log("Installing Jest...");
+    await execPromise("npm install --silent", { cwd: tmpDir });
+
+    // Run test
+    console.log("Running unit test...");
+    const { stdout, stderr } = await execPromise("npm test", {
+      cwd: tmpDir,
+      timeout: 30000,
+    });
+
+    console.log("Test output:", stdout);
+
+    // Clean up
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+
+    // Check if tests passed
+    const passed = stdout.includes("PASS") || stdout.includes("✓");
+    
+    return {
+      status: passed ? "passed" : "failed",
+      duration: Date.now() - startTime,
+      error: passed ? undefined : stderr || "Test failed",
+    };
+  } catch (error: any) {
+    // Clean up on error
+    try {
+      const fs = require("fs");
+      const path = require("path");
+      const tmpDir = path.join(process.cwd(), "tmp", `unit-test-${Date.now()}`);
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    } catch {}
+
+    return {
+      status: "failed",
+      duration: Date.now() - startTime,
+      error: error.message || "Test execution failed",
     };
   }
 }

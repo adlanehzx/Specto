@@ -1,0 +1,88 @@
+{
+  "server": "http://localhost:4000",
+  "apiKey": "ley_343e5f0f877de2a0e3aa94cd0daafa73dc587d84d78f656d3e97f2a27431a3d1",
+  "project": "test-cmiuka",
+  "environments": {
+    "local": {
+      "baseUrl": "http://localhost:3001",
+      "variables": {}
+    }
+  },
+  "tests": {
+    "e2e": [
+      {
+        "name": "Page d'accueil - Titre",
+        "url": "/",
+        "description": "Vérifie que la page affiche le titre 'Test App pour LeynAI'"
+      },
+      {
+        "name": "Ajouter des éléments",
+        "url": "/",
+        "description": "Clique sur le bouton 'Ajouter un élément' et vérifie que les éléments apparaissent dans la liste"
+      },
+      {
+        "name": "Effacer les éléments",
+        "url": "/",
+        "description": "Ajoute un élément, puis clique sur 'Effacer tout' et vérifie que tout est effacé"
+      }
+    ],
+    "smoke": [
+      {
+        "name": "Health endpoints",
+        "urls": ["/api/health", "/", "/api/users"]
+      },
+      {
+        "name": "Critical APIs",
+        "urls": ["/api/users/1", "/api/users/2"]
+      }
+    ],
+    "api": [
+      {
+        "name": "Health Check",
+        "url": "/api/health",
+        "description": "Vérifie que l'API répond avec status 200 et contient un champ 'status' égal à 'ok'"
+      },
+      {
+        "name": "Liste des utilisateurs",
+        "url": "/api/users",
+        "description": "Récupère la liste des utilisateurs et vérifie qu'il y a au moins 2 utilisateurs avec des champs id, name et email"
+      },
+      {
+        "name": "Créer un utilisateur",
+        "url": "/api/users",
+        "description": "Crée un nouvel utilisateur nommé 'Charlie' avec l'email 'charlie@test.com' et vérifie que la réponse contient un ID généré"
+      },
+      {
+        "name": "Récupérer un utilisateur",
+        "url": "/api/users/1",
+        "description": "Récupère l'utilisateur avec l'ID 1 et vérifie que son nom est 'Alice' et son email est 'alice@test.com'"
+      }
+    ],
+    "unit": [
+      {
+        "name": "Test addition",
+        "filePath": "utils.js",
+        "functionName": "add",
+        "description": "Teste la fonction add(a, b) qui additionne deux nombres. Vérifie que add(2, 3) retourne 5, add(0, 0) retourne 0, et add(-1, 1) retourne 0"
+      },
+      {
+        "name": "Test discount",
+        "filePath": "utils.js",
+        "functionName": "calculateDiscount",
+        "description": "Teste la fonction calculateDiscount(price, discountPercent). Vérifie qu'avec un prix de 100 et 20% de réduction on obtient 80, qu'une réduction de 0% ne change pas le prix, et que des valeurs négatives lancent une erreur"
+      },
+      {
+        "name": "Test email validation",
+        "filePath": "utils.js",
+        "functionName": "isValidEmail",
+        "description": "Teste la fonction isValidEmail(email). Vérifie que 'test@example.com' est valide, 'invalid' est invalide, et 'test@' est invalide"
+      }
+    ]
+  },
+  "options": {
+    "parallel": 1,
+    "timeout": 30000,
+    "retries": 1,
+    "bail": false
+  }
+}

@@ -50,11 +50,8 @@ router.get("/", async (req, res) => {
       whereClause = {
         projectId: projectId as string,
         project: {
-          OR: [
-            { createdBy: userId },
-            { members: { some: { userId } } }
-          ]
-        }
+          OR: [{ createdBy: userId }, { members: { some: { userId } } }],
+        },
       };
     } else {
       // No project specified: show only user's own tests

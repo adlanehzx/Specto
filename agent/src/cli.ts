@@ -442,8 +442,9 @@ export async function test(options: {
 
     // Display test plan
     const environment = options.env || "local";
-    const baseUrl = config.environments?.[environment]?.baseUrl || "http://localhost:3000";
-    
+    const baseUrl =
+      config.environments?.[environment]?.baseUrl || "http://localhost:3000";
+
     console.log(chalk.gray(`Server: ${config.server}`));
     console.log(chalk.gray(`Project: ${config.project}`));
     console.log(chalk.gray(`Environment: ${environment}`));
@@ -468,24 +469,27 @@ export async function test(options: {
 
     // Wait for tunnel DNS to propagate (Cloudflare needs time)
     console.log(chalk.gray("⏳ Waiting for tunnel DNS propagation..."));
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await new Promise((resolve) => setTimeout(resolve, 3000));
     console.log(chalk.green("✓ Tunnel ready\n"));
 
     // Get tests from config and flatten them
     const tests = config.tests || {};
     const allTests: any[] = [];
-    
+
     // Collect all tests from different types
     if (tests.e2e && Array.isArray(tests.e2e)) {
-      allTests.push(...tests.e2e.map((t: any) => ({ ...t, type: 'e2e' })));
+      allTests.push(...tests.e2e.map((t: any) => ({ ...t, type: "e2e" })));
     }
     if (tests.smoke && Array.isArray(tests.smoke)) {
-      allTests.push(...tests.smoke.map((t: any) => ({ ...t, type: 'smoke' })));
+      allTests.push(...tests.smoke.map((t: any) => ({ ...t, type: "smoke" })));
     }
     if (tests.api && Array.isArray(tests.api)) {
-      allTests.push(...tests.api.map((t: any) => ({ ...t, type: 'api' })));
+      allTests.push(...tests.api.map((t: any) => ({ ...t, type: "api" })));
     }
-    
+    if (tests.unit && Array.isArray(tests.unit)) {
+      allTests.push(...tests.unit.map((t: any) => ({ ...t, type: "unit" })));
+    }
+
     if (allTests.length === 0) {
       console.log(chalk.yellow("⚠️  No tests found in configuration"));
       await tunnel.closeTunnel(port);

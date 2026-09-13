@@ -227,7 +227,8 @@ export function ProjectTestsList({
   const displayedTests = testType === "e2e" ? tests : [];
   const displayedApiTests = testType === "api" ? apiTests : [];
   const displayedSmokeTests = testType === "smoke" ? smokeTests : [];
-  const hasNoTests = tests.length === 0 && apiTests.length === 0 && smokeTests.length === 0;
+  const hasNoTests =
+    tests.length === 0 && apiTests.length === 0 && smokeTests.length === 0;
 
   console.log("ProjectTestsList render:", {
     testType,
@@ -468,9 +469,7 @@ export function ProjectTestsList({
                   </Badge>
                 </div>
 
-                <p className="text-sm text-gray-600 mb-3">
-                  Health check test
-                </p>
+                <p className="text-sm text-gray-600 mb-3">Health check test</p>
 
                 <div className="flex items-center gap-4 text-xs text-gray-500">
                   <div className="flex items-center gap-1">
@@ -485,7 +484,8 @@ export function ProjectTestsList({
                       <span>{test.runs.length} exécutions</span>
                       {test.runs[0]?.successfulChecks !== undefined && (
                         <span className="text-green-600">
-                          {test.runs[0].successfulChecks}/{test.runs[0].totalEndpoints} checks OK
+                          {test.runs[0].successfulChecks}/
+                          {test.runs[0].totalEndpoints} checks OK
                         </span>
                       )}
                     </>
