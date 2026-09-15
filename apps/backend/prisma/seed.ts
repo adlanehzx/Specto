@@ -39,7 +39,7 @@ async function main() {
 
   const demoUser = await prisma.user.create({
     data: {
-      email: "demo@leynai.com",
+      email: "demo@specto.com",
       passwordHash: demoPassword,
     },
   });
@@ -47,7 +47,7 @@ async function main() {
 
   const testUser = await prisma.user.create({
     data: {
-      email: "test@leynai.com",
+      email: "test@specto.com",
       passwordHash: testPassword,
     },
   });
@@ -243,7 +243,7 @@ async function main() {
       projectId: projectDemo.id,
       name: "Homepage Load Test",
       description: "Test de charge sur la page d'accueil",
-      url: "https://demo-shop.leynai.com",
+      url: "https://demo-shop.specto.com",
       vus: 50,
       duration: 60,
       rampUpTime: 10,
@@ -284,7 +284,7 @@ async function main() {
       projectId: projectAPI.id,
       name: "API Endpoint Stress Test",
       description: "Test de stress sur /api/users",
-      url: "https://api.leynai.com/users",
+      url: "https://api.specto.com/users",
       vus: 100,
       duration: 120,
       rampUpTime: 20,
@@ -331,7 +331,7 @@ async function main() {
       projectId: projectDemo.id,
       name: "E-commerce Security Scan",
       description: "Scan OWASP complet de l'application e-commerce",
-      targetUrl: "https://demo-shop.leynai.com",
+      targetUrl: "https://demo-shop.specto.com",
       scanType: "full",
       checkSqlInjection: true,
       checkXss: true,
@@ -374,7 +374,7 @@ async function main() {
       severity: "critical",
       title: "SQL Injection dans le paramètre 'id'",
       description: "Le paramètre 'id' est vulnérable à l'injection SQL. Un attaquant peut exécuter des requêtes SQL arbitraires.",
-      url: "https://demo-shop.leynai.com/product",
+      url: "https://demo-shop.specto.com/product",
       parameter: "id",
       method: "GET",
       evidence: "Payload: ' OR '1'='1 a retourné tous les produits",
@@ -392,7 +392,7 @@ async function main() {
       severity: "high",
       title: "XSS Réfléchi dans la recherche",
       description: "Le champ de recherche est vulnérable au XSS. Les entrées utilisateur ne sont pas encodées.",
-      url: "https://demo-shop.leynai.com/search",
+      url: "https://demo-shop.specto.com/search",
       parameter: "q",
       method: "GET",
       evidence: "Payload: <script>alert(1)</script> s'exécute dans le navigateur",
@@ -410,7 +410,7 @@ async function main() {
       severity: "medium",
       title: "En-tête Content-Security-Policy manquant",
       description: "L'en-tête CSP n'est pas configuré, ce qui réduit la protection contre les attaques XSS.",
-      url: "https://demo-shop.leynai.com",
+      url: "https://demo-shop.specto.com",
       evidence: "Aucun en-tête Content-Security-Policy détecté dans la réponse",
       cwe: "CWE-16",
       owasp: "A05:2021 - Security Misconfiguration",
@@ -427,7 +427,7 @@ async function main() {
       projectId: projectAPI.id,
       name: "API Security Quick Scan",
       description: "Scan rapide de sécurité de l'API",
-      targetUrl: "https://api.leynai.com",
+      targetUrl: "https://api.specto.com",
       scanType: "quick",
       checkSqlInjection: true,
       checkXss: false,
@@ -469,7 +469,7 @@ async function main() {
       severity: "medium",
       title: "En-tête Strict-Transport-Security manquant",
       description: "L'en-tête HSTS n'est pas configuré",
-      url: "https://api.leynai.com",
+      url: "https://api.specto.com",
       evidence: "Aucun en-tête Strict-Transport-Security détecté",
       cwe: "CWE-16",
       owasp: "A05:2021 - Security Misconfiguration",
@@ -499,7 +499,7 @@ async function main() {
 
 test('homepage test', async ({ page }) => {
   await page.goto('http://localhost:3000');
-  await expect(page).toHaveTitle(/LeynAI/);
+  await expect(page).toHaveTitle(/Specto/);
   await page.screenshot({ path: 'screenshot.png' });
 });`,
       keepTunnelOpen: true,
@@ -690,15 +690,15 @@ Possible causes:
   console.log(`  📊 Unit Test Runs:     ${await prisma.unitTestRun.count()}`);
 
   console.log("\n🔑 Login credentials:");
-  console.log("  📧 Email: demo@leynai.com");
+  console.log("  📧 Email: demo@specto.com");
   console.log("  � Password: demo123");
-  console.log("\n  📧 Email: test@leynai.com");
+  console.log("\n  📧 Email: test@specto.com");
   console.log("  � Password: test123");
 
   console.log("\n💡 Projects created:");
   console.log("  � Demo E-commerce (with E2E and Unit Tests)");
   console.log("  📁 REST API Backend (with E2E and Unit Tests)");
-  console.log("  � Mobile App (by test@leynai.com)");
+  console.log("  � Mobile App (by test@specto.com)");
 
   console.log("\n🧪 Test Data:");
   console.log("  • 5 E2E Tests with full execution history");
@@ -708,11 +708,11 @@ Possible causes:
 
   console.log("\n� Next Steps:");
   console.log(
-    "  1. Login at http://localhost:3000 with demo@leynai.com / demo123"
+    "  1. Login at http://localhost:3000 with demo@specto.com / demo123"
   );
   console.log("  2. View unified test history across all types");
   console.log("  3. Create new Performance or Security tests");
-  console.log("  4. Use CLI: leynai-agent test --project=<id>");
+  console.log("  4. Use CLI: specto-agent test --project=<id>");
   console.log("\n" + "=".repeat(60));
 }
 

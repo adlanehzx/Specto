@@ -1,12 +1,12 @@
 {
-  "name": "@adlanehzx/leynai-agent",
+  "name": "@adlanehzx/specto-agent",
   "version": "1.2.0",
-  "description": "LeynAI Agent - Connect your localhost to LeynAI cloud for automated testing",
+  "description": "Specto Agent - Connect your localhost to Specto cloud for automated testing",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "leynai-agent": "./bin/leynai-agent.js",
-    "leynai": "./bin/leynai-agent.js"
+    "specto-agent": "./bin/specto-agent.js",
+    "specto": "./bin/specto-agent.js"
   },
   "publishConfig": {
     "access": "public"
@@ -18,7 +18,7 @@
     "prepublishOnly": "npm run build"
   },
   "keywords": [
-    "leynai",
+    "specto",
     "testing",
     "playwright",
     "tunnel",

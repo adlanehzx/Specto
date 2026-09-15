@@ -93,7 +93,7 @@ export function ProjectSettings({
         </h3>
         <p className="text-sm text-gray-600 mb-4">
           Utilisez ce slug dans votre fichier{" "}
-          <code className="bg-gray-100 px-2 py-1 rounded">leynai.json</code>{" "}
+          <code className="bg-gray-100 px-2 py-1 rounded">specto.json</code>{" "}
           pour lier votre projet.
         </p>
         <div className="flex items-center gap-3">

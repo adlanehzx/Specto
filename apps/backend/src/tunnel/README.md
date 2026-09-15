@@ -4,7 +4,7 @@ Module de gestion des tunnels Cloudflare pour exposer des serveurs locaux via de
 
 ## 🎯 Objectif
 
-Permettre à LeynAI de tester des sites web locaux (`http://localhost:*`) en créant automatiquement des tunnels Cloudflare publics sans configuration.
+Permettre à Specto de tester des sites web locaux (`http://localhost:*`) en créant automatiquement des tunnels Cloudflare publics sans configuration.
 
 ## 📦 Installation
 
@@ -176,7 +176,7 @@ if (!installed) {
 }
 ```
 
-## 🔄 Intégration dans LeynAI
+## 🔄 Intégration dans Specto
 
 Le module est intégré dans :
 

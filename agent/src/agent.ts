@@ -8,7 +8,7 @@ import * as tunnel from "./tunnel.js";
 const execAsync = promisify(exec);
 
 /**
- * Configuration for LeynAI Agent
+ * Configuration for Specto Agent
  */
 export interface AgentConfig {
   /** Backend API URL */
@@ -31,12 +31,12 @@ interface TunnelMapping {
 }
 
 /**
- * LeynAI Agent
+ * Specto Agent
  *
  * Automatically detects local servers, creates ngrok tunnels,
- * and registers them with LeynAI backend for remote testing.
+ * and registers them with Specto backend for remote testing.
  */
-export class LeynAIAgent {
+export class SpectoAgent {
   private config: AgentConfig;
   private api: AxiosInstance;
   private tunnels: Map<number, string> = new Map();
@@ -64,14 +64,14 @@ export class LeynAIAgent {
    * Start the agent
    */
   async start(): Promise<void> {
-    console.log(chalk.cyan("🚀 Starting LeynAI Agent...\n"));
+    console.log(chalk.cyan("🚀 Starting Specto Agent...\n"));
 
     // 0. Check if cloudflared is installed
     const isInstalled = await tunnel.checkCloudflaredInstalled();
     if (!isInstalled) {
       tunnel.printInstallInstructions();
       throw new Error(
-        "cloudflared binary not found. Please install it to use LeynAI Agent."
+        "cloudflared binary not found. Please install it to use Specto Agent."
       );
     }
 
@@ -102,7 +102,7 @@ export class LeynAIAgent {
     this.startHeartbeat();
 
     this.isRunning = true;
-    console.log(chalk.green("\n✅ LeynAI Agent is running!"));
+    console.log(chalk.green("\n✅ Specto Agent is running!"));
     console.log(chalk.gray("   Press Ctrl+C to stop\n"));
   }
 
@@ -145,7 +145,7 @@ export class LeynAIAgent {
   }
 
   /**
-   * Authenticate with LeynAI backend
+   * Authenticate with Specto backend
    */
   private async authenticate(): Promise<void> {
     const spinner = ora("Authenticating with backend...").start();
@@ -169,7 +169,7 @@ export class LeynAIAgent {
           )
         );
         console.log(
-          chalk.yellow("💡 Make sure the LeynAI backend is running\n")
+          chalk.yellow("💡 Make sure the Specto backend is running\n")
         );
       } else if (error.response?.status === 401) {
         console.error(chalk.red("\n❌ Invalid authentication token"));
@@ -252,7 +252,7 @@ export class LeynAIAgent {
   }
 
   /**
-   * Register active tunnels with LeynAI backend
+   * Register active tunnels with Specto backend
    */
   private async registerTunnels(): Promise<void> {
     const spinner = ora("Registering tunnels with backend...").start();

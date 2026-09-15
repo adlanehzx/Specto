@@ -182,7 +182,7 @@ Return ONLY the JSON configuration.`;
 }
 
 export function buildApiTestFromPostmanPrompt(postmanCollection: any): string {
-  return `Convert this Postman collection/request into LeynAI API test configurations.
+  return `Convert this Postman collection/request into Specto API test configurations.
 
 POSTMAN DATA:
 ${JSON.stringify(postmanCollection, null, 2)}

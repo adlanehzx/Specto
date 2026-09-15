@@ -1,6 +1,6 @@
 {
-  "server": "https://api.leynai.com",
-  "apiKey": "${LEYNAI_API_KEY}",
+  "server": "https://api.specto.com",
+  "apiKey": "${SPECTO_API_KEY}",
   "project": "my-project-id",
   "environments": {
     "staging": {

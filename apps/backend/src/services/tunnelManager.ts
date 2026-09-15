@@ -216,7 +216,7 @@ export async function cleanupExpiredAgentTunnels(): Promise<number> {
     const agentTunnels = await prisma.tunnel.findMany({
       where: {
         status: "active",
-        agentId: "leynai-agent",
+        agentId: "specto-agent",
       },
       select: {
         id: true,

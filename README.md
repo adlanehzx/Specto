@@ -1,12 +1,12 @@
-# LeynAI - Automated Testing Platform (E2E + API)
+# Specto - Automated Testing Platform (E2E + API)
 
-LeynAI est une plateforme de tests automatisés intelligente qui utilise l'IA pour générer et exécuter des tests **Playwright (E2E)** et **API (REST)** basés sur des descriptions en langage naturel.
+Specto est une plateforme de tests automatisés intelligente qui utilise l'IA pour générer et exécuter des tests **Playwright (E2E)** et **API (REST)** basés sur des descriptions en langage naturel.
 
 ---
 
-## 👥 For Users: Integrate LeynAI in Your Projects
+## 👥 For Users: Integrate Specto in Your Projects
 
-**Want to use LeynAI for your own project's testing?**
+**Want to use Specto for your own project's testing?**
 
 ### 🚀 Quick Setup (5 minutes)
 
@@ -116,7 +116,7 @@ npm run dev
 ## 📁 Structure du projet
 
 ```
-LeynAI/
+Specto/
 ├── apps/
 │   ├── backend/          # API Node.js + Express + Prisma + Playwright
 │   └── frontend/         # Interface Next.js 14 App Router
@@ -197,7 +197,7 @@ cd scripts && make logs
 | [QUICK_START_DOCKER.md](docs/QUICK_START_DOCKER.md) | Démarrage rapide en 3 étapes              |
 | [DOCKER_SUMMARY.md](docs/DOCKER_SUMMARY.md)         | Architecture et résumé visuel             |
 | [DOCKER_SUCCESS.md](docs/DOCKER_SUCCESS.md)         | Corrections appliquées et validation      |
-| **[CICD_QUICKSTART.md](CICD_QUICKSTART.md)** ⭐     | **Intégrer LeynAI dans votre CI/CD**      |
+| **[CICD_QUICKSTART.md](CICD_QUICKSTART.md)** ⭐     | **Intégrer Specto dans votre CI/CD**      |
 | [CI_CD_INTEGRATION.md](docs/CI_CD_INTEGRATION.md)   | Guide détaillé CI/CD (GitHub, GitLab)     |
 | [examples/ci-cd/](examples/ci-cd/)                  | Templates CI/CD prêts à copier            |
 

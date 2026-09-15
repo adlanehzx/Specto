@@ -6,7 +6,7 @@ import ToastProvider from "@/components/ToastProvider";
 import ThemeProvider from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
-  title: "LeynAI - Tests automatisés intelligents",
+  title: "Specto - Tests automatisés intelligents",
   description: "Générez et exécutez des tests Playwright avec l'IA",
 };
 

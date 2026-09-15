@@ -58,7 +58,7 @@ export async function executeUnitTest(testId: string): Promise<string> {
 
     // Créer un répertoire temporaire pour l'exécution
     const tempDir = await fs.mkdtemp(
-      path.join(os.tmpdir(), "leynai-unit-test-")
+      path.join(os.tmpdir(), "specto-unit-test-")
     );
 
     try {
@@ -74,7 +74,7 @@ export async function executeUnitTest(testId: string): Promise<string> {
 
       // 3. Créer un package.json minimal
       const packageJson = {
-        name: "leynai-unit-test",
+        name: "specto-unit-test",
         version: "1.0.0",
         type: "module",
         scripts: {

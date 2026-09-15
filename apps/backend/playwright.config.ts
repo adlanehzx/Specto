@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * Configuration Playwright pour LeynAI Backend
+ * Configuration Playwright pour Specto Backend
  *
  * Cette configuration est utilisée pour exécuter les tests générés dynamiquement.
  * Le runner (playrunner.ts) crée des configurations temporaires basées sur celle-ci.

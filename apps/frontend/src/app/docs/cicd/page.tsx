@@ -4,7 +4,7 @@ export default function CICDGuidePage() {
       <h1>⚙️ CI/CD Integration Guide</h1>
 
       <p className="lead">
-        Integrate LeynAI into your continuous integration and deployment
+        Integrate Specto into your continuous integration and deployment
         pipeline to run automated tests on every commit, pull request, or
         deployment.
       </p>
@@ -14,9 +14,9 @@ export default function CICDGuidePage() {
         <h2>Overview</h2>
 
         <p>
-          LeynAI can be integrated into any CI/CD platform. The agent runs in
+          Specto can be integrated into any CI/CD platform. The agent runs in
           your CI environment, creates tunnels for your application, and
-          executes tests via the LeynAI API.
+          executes tests via the Specto API.
         </p>
 
         <div className="not-prose bg-blue-50 border-l-4 border-blue-500 p-4 my-4">
@@ -26,8 +26,8 @@ export default function CICDGuidePage() {
           <ol className="text-blue-700 mt-2 space-y-1">
             <li>1. CI pipeline starts</li>
             <li>2. Your application builds and starts</li>
-            <li>3. LeynAI agent creates tunnel</li>
-            <li>4. Tests run via LeynAI API</li>
+            <li>3. Specto agent creates tunnel</li>
+            <li>4. Tests run via Specto API</li>
             <li>5. Results returned to CI</li>
           </ol>
         </div>
@@ -42,8 +42,8 @@ export default function CICDGuidePage() {
         <h3>Complete Workflow</h3>
         <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
           <pre className="text-sm">
-            <code>{`# .github/workflows/leynai-tests.yml
-name: LeynAI E2E Tests
+            <code>{`# .github/workflows/specto-tests.yml
+name: Specto E2E Tests
 
 on:
   push:
@@ -81,9 +81,9 @@ jobs:
           sudo mv cloudflared-linux-amd64 /usr/local/bin/cloudflared
           sudo chmod +x /usr/local/bin/cloudflared
       
-      # 6. Install LeynAI agent
-      - name: Install LeynAI agent
-        run: npm install -g leynai-agent
+      # 6. Install Specto agent
+      - name: Install Specto agent
+        run: npm install -g specto-agent
       
       # 7. Start application in background
       - name: Start application
@@ -91,50 +91,50 @@ jobs:
           npm start &
           sleep 10  # Wait for app to start
       
-      # 8. Start LeynAI agent
-      - name: Start LeynAI agent
+      # 8. Start Specto agent
+      - name: Start Specto agent
         env:
-          LEYNAI_TOKEN: \${{ secrets.LEYNAI_TOKEN }}
+          SPECTO_TOKEN: \${{ secrets.SPECTO_TOKEN }}
         run: |
-          leynai-agent login --token \$LEYNAI_TOKEN --backend https://api.leynai.com
-          leynai-agent start --daemon --ports 3000
+          specto-agent login --token \$SPECTO_TOKEN --backend https://api.specto.com
+          specto-agent start --daemon --ports 3000
           sleep 5  # Wait for tunnel creation
       
       # 9. Run tests via API
-      - name: Run LeynAI tests
+      - name: Run Specto tests
         env:
-          LEYNAI_TOKEN: \${{ secrets.LEYNAI_TOKEN }}
+          SPECTO_TOKEN: \${{ secrets.SPECTO_TOKEN }}
         run: |
           # Get tunnel URL
-          TUNNEL_URL=$(leynai-agent status | grep "Port 3000" | awk '{print $3}')
+          TUNNEL_URL=$(specto-agent status | grep "Port 3000" | awk '{print $3}')
           echo "Tunnel URL: $TUNNEL_URL"
           
           # Trigger test via API (example)
-          curl -X POST https://api.leynai.com/api/tests/run \\
-            -H "Authorization: Bearer \$LEYNAI_TOKEN" \\
+          curl -X POST https://api.specto.com/api/tests/run \\
+            -H "Authorization: Bearer \$SPECTO_TOKEN" \\
             -H "Content-Type: application/json" \\
             -d '{"testId": "your-test-id"}'
       
       # 10. Cleanup
-      - name: Stop LeynAI agent
+      - name: Stop Specto agent
         if: always()
         run: |
-          leynai-agent stop
-          leynai-agent logout`}</code>
+          specto-agent stop
+          specto-agent logout`}</code>
           </pre>
         </div>
 
         <h3>Setup Secrets</h3>
-        <p>Add your LeynAI token to GitHub Secrets:</p>
+        <p>Add your Specto token to GitHub Secrets:</p>
         <ol>
           <li>
             Go to your repository Settings → Secrets and variables → Actions
           </li>
           <li>Click "New repository secret"</li>
           <li>
-            Name: <code>LEYNAI_TOKEN</code>
+            Name: <code>SPECTO_TOKEN</code>
           </li>
-          <li>Value: Your JWT token from LeynAI dashboard</li>
+          <li>Value: Your JWT token from Specto dashboard</li>
           <li>Click "Add secret"</li>
         </ol>
 
@@ -197,21 +197,21 @@ test:
     - wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
     - mv cloudflared-linux-amd64 /usr/local/bin/cloudflared
     - chmod +x /usr/local/bin/cloudflared
-    # Install LeynAI agent
-    - npm install -g leynai-agent
+    # Install Specto agent
+    - npm install -g specto-agent
   script:
     # Start application
     - npm start &
     - sleep 10
-    # Start LeynAI agent
-    - leynai-agent login --token \$LEYNAI_TOKEN --backend https://api.leynai.com
-    - leynai-agent start --daemon --ports 3000
+    # Start Specto agent
+    - specto-agent login --token \$SPECTO_TOKEN --backend https://api.specto.com
+    - specto-agent start --daemon --ports 3000
     - sleep 5
     # Run tests (replace with your test command)
-    - echo "Tests would run here via LeynAI API"
+    - echo "Tests would run here via Specto API"
   after_script:
-    - leynai-agent stop
-    - leynai-agent logout
+    - specto-agent stop
+    - specto-agent logout
   only:
     - main
     - merge_requests`}</code>
@@ -222,7 +222,7 @@ test:
         <ol>
           <li>Go to Settings → CI/CD → Variables</li>
           <li>
-            Add variable: <code>LEYNAI_TOKEN</code>
+            Add variable: <code>SPECTO_TOKEN</code>
           </li>
           <li>Value: Your JWT token</li>
           <li>Check "Mask variable"</li>
@@ -277,8 +277,8 @@ jobs:
             sudo chmod +x /usr/local/bin/cloudflared
       
       - run:
-          name: Install LeynAI agent
-          command: npm install -g leynai-agent
+          name: Install Specto agent
+          command: npm install -g specto-agent
       
       - run:
           name: Start application
@@ -290,23 +290,23 @@ jobs:
           command: sleep 10
       
       - run:
-          name: Start LeynAI agent
+          name: Start Specto agent
           command: |
-            leynai-agent login --token \$LEYNAI_TOKEN --backend https://api.leynai.com
-            leynai-agent start --daemon --ports 3000
+            specto-agent login --token \$SPECTO_TOKEN --backend https://api.specto.com
+            specto-agent start --daemon --ports 3000
             sleep 5
       
       - run:
           name: Run tests
           command: |
             # Your test execution command here
-            echo "Running LeynAI tests"
+            echo "Running Specto tests"
       
       - run:
           name: Cleanup
           command: |
-            leynai-agent stop
-            leynai-agent logout
+            specto-agent stop
+            specto-agent logout
           when: always
 
 workflows:
@@ -321,7 +321,7 @@ workflows:
         <ol>
           <li>Project Settings → Environment Variables</li>
           <li>
-            Add Variable: <code>LEYNAI_TOKEN</code>
+            Add Variable: <code>SPECTO_TOKEN</code>
           </li>
           <li>Value: Your JWT token</li>
           <li>Save</li>
@@ -343,7 +343,7 @@ pipeline {
     agent any
     
     environment {
-        LEYNAI_TOKEN = credentials('leynai-token')
+        SPECTO_TOKEN = credentials('specto-token')
         NODE_VERSION = '18'
     }
     
@@ -378,8 +378,8 @@ pipeline {
                     sudo mv cloudflared-linux-amd64 /usr/local/bin/cloudflared
                     sudo chmod +x /usr/local/bin/cloudflared
                     
-                    # Install LeynAI agent
-                    npm install -g leynai-agent
+                    # Install Specto agent
+                    npm install -g specto-agent
                 '''
             }
         }
@@ -393,11 +393,11 @@ pipeline {
             }
         }
         
-        stage('Start LeynAI Agent') {
+        stage('Start Specto Agent') {
             steps {
                 sh '''
-                    leynai-agent login --token $LEYNAI_TOKEN --backend https://api.leynai.com
-                    leynai-agent start --daemon --ports 3000
+                    specto-agent login --token $SPECTO_TOKEN --backend https://api.specto.com
+                    specto-agent start --daemon --ports 3000
                     sleep 5
                 '''
             }
@@ -407,7 +407,7 @@ pipeline {
             steps {
                 sh '''
                     # Get tunnel URL
-                    TUNNEL_URL=$(leynai-agent status | grep "Port 3000" | awk '{print $3}')
+                    TUNNEL_URL=$(specto-agent status | grep "Port 3000" | awk '{print $3}')
                     echo "Testing via: $TUNNEL_URL"
                     
                     # Run tests via API
@@ -420,8 +420,8 @@ pipeline {
     post {
         always {
             sh '''
-                leynai-agent stop || true
-                leynai-agent logout || true
+                specto-agent stop || true
+                specto-agent logout || true
             '''
         }
     }
@@ -435,7 +435,7 @@ pipeline {
           <li>Add Credentials</li>
           <li>Kind: Secret text</li>
           <li>
-            ID: <code>leynai-token</code>
+            ID: <code>specto-token</code>
           </li>
           <li>Secret: Your JWT token</li>
           <li>Save</li>
@@ -481,8 +481,8 @@ steps:
     sudo chmod +x /usr/local/bin/cloudflared
   displayName: 'Install cloudflared'
 
-- script: npm install -g leynai-agent
-  displayName: 'Install LeynAI agent'
+- script: npm install -g specto-agent
+  displayName: 'Install Specto agent'
 
 - script: |
     npm start &
@@ -490,21 +490,21 @@ steps:
   displayName: 'Start application'
 
 - script: |
-    leynai-agent login --token $(LEYNAI_TOKEN) --backend https://api.leynai.com
-    leynai-agent start --daemon --ports 3000
+    specto-agent login --token $(SPECTO_TOKEN) --backend https://api.specto.com
+    specto-agent start --daemon --ports 3000
     sleep 5
-  displayName: 'Start LeynAI agent'
+  displayName: 'Start Specto agent'
   env:
-    LEYNAI_TOKEN: $(LEYNAI_TOKEN)
+    SPECTO_TOKEN: $(SPECTO_TOKEN)
 
 - script: |
     # Run your tests
-    echo "Running LeynAI tests"
+    echo "Running Specto tests"
   displayName: 'Run tests'
 
 - script: |
-    leynai-agent stop || true
-    leynai-agent logout || true
+    specto-agent stop || true
+    specto-agent logout || true
   displayName: 'Cleanup'
   condition: always()`}</code>
           </pre>
@@ -514,7 +514,7 @@ steps:
         <ol>
           <li>Pipelines → Edit → Variables</li>
           <li>
-            New variable: <code>LEYNAI_TOKEN</code>
+            New variable: <code>SPECTO_TOKEN</code>
           </li>
           <li>Value: Your JWT token</li>
           <li>Check "Keep this value secret"</li>
@@ -571,8 +571,8 @@ done`}</code>
 
         <h3>7. Use Production Backend</h3>
         <p>
-          In CI, use <code>--backend https://api.leynai.com</code> to connect to
-          production LeynAI.
+          In CI, use <code>--backend https://api.specto.com</code> to connect to
+          production Specto.
         </p>
       </section>
 
@@ -592,8 +592,8 @@ RUN wget https://github.com/cloudflare/cloudflared/releases/latest/download/clou
     && mv cloudflared-linux-amd64 /usr/local/bin/cloudflared \\
     && chmod +x /usr/local/bin/cloudflared
 
-# Install LeynAI agent
-RUN npm install -g leynai-agent
+# Install Specto agent
+RUN npm install -g specto-agent
 
 WORKDIR /app
 
@@ -624,17 +624,17 @@ set -e
 npm start &
 sleep 10
 
-# Start LeynAI agent
-leynai-agent login --token $LEYNAI_TOKEN --backend https://api.leynai.com
-leynai-agent start --daemon --ports 3000
+# Start Specto agent
+specto-agent login --token $SPECTO_TOKEN --backend https://api.specto.com
+specto-agent start --daemon --ports 3000
 sleep 5
 
 # Run tests
 # ... your test commands
 
 # Cleanup
-leynai-agent stop
-leynai-agent logout`}</code>
+specto-agent stop
+specto-agent logout`}</code>
           </pre>
         </div>
       </section>
@@ -650,7 +650,7 @@ leynai-agent logout`}</code>
         <ul>
           <li>Ensure Node.js 18+ is installed</li>
           <li>
-            Use <code>npm install -g leynai-agent</code> not{" "}
+            Use <code>npm install -g specto-agent</code> not{" "}
             <code>npm install</code>
           </li>
           <li>Check npm has proper permissions</li>
@@ -703,18 +703,18 @@ leynai-agent logout`}</code>
           </p>
           <div className="space-y-3">
             <a
-              href="https://github.com/leynai/example-nextjs"
+              href="https://github.com/specto/example-nextjs"
               target="_blank"
               rel="noopener noreferrer"
               className="block bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-4 transition-colors"
             >
               <h3 className="font-semibold mb-1">Next.js + GitHub Actions</h3>
               <p className="text-sm text-green-100">
-                Complete example with LeynAI testing
+                Complete example with Specto testing
               </p>
             </a>
             <a
-              href="https://github.com/leynai/example-react"
+              href="https://github.com/specto/example-react"
               target="_blank"
               rel="noopener noreferrer"
               className="block bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-4 transition-colors"

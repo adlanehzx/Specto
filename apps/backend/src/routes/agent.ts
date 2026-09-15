@@ -1,7 +1,7 @@
 /**
  * Agent Routes
  *
- * API endpoints for LeynAI Agent to register tunnel mappings
+ * API endpoints for Specto Agent to register tunnel mappings
  */
 
 import { Router, Request, Response } from "express";
@@ -106,7 +106,7 @@ router.post("/register", authenticate, async (req: Request, res: Response) => {
             port: tunnel.port,
             status: "active",
             userId,
-            agentId: "leynai-agent", // Identifier les tunnels créés par l'agent
+            agentId: "specto-agent", // Identifier les tunnels créés par l'agent
           },
         });
         createdTunnels.push(newTunnel.id);
@@ -208,7 +208,7 @@ router.delete("/tunnels", authenticate, async (req: Request, res: Response) => {
       where: {
         userId,
         status: "active",
-        agentId: "leynai-agent",
+        agentId: "specto-agent",
       },
       data: {
         status: "closed",

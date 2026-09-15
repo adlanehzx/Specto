@@ -152,7 +152,7 @@ export async function executePerformanceTest(testId: string): Promise<string> {
 
     // Créer un répertoire temporaire pour l'exécution
     const tempDir = await fs.mkdtemp(
-      path.join(os.tmpdir(), "leynai-perf-test-")
+      path.join(os.tmpdir(), "specto-perf-test-")
     );
 
     try {

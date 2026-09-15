@@ -36,7 +36,7 @@ export default function LoginPage() {
           <Link href="/" className="inline-flex items-center gap-2 mb-4">
             <RocketIcon className="w-10 h-10 text-blue-600 dark:text-blue-400" />
             <span className="text-3xl font-bold text-gray-900 dark:text-white">
-              LeynAI
+              Specto
             </span>
           </Link>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">

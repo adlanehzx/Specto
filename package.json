@@ -1,8 +1,8 @@
 {
-  "name": "leynai-mvp",
+  "name": "specto-mvp",
   "version": "1.0.0",
   "private": true,
-  "description": "LeynAI MVP - Monorepo with Next.js frontend and Express backend",
+  "description": "Specto MVP - Monorepo with Next.js frontend and Express backend",
   "workspaces": [
     "apps/*"
   ],

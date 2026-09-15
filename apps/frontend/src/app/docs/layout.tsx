@@ -46,10 +46,10 @@ export default function DocsLayout({
               <span className="text-3xl">📖</span>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">
-                  LeynAI Documentation
+                  Specto Documentation
                 </h1>
                 <p className="text-sm text-gray-500">
-                  Complete guide to using LeynAI
+                  Complete guide to using Specto
                 </p>
               </div>
             </div>
@@ -91,7 +91,7 @@ export default function DocsLayout({
                 <ul className="space-y-2 text-sm">
                   <li>
                     <a
-                      href="https://github.com/leynai/leynai-agent"
+                      href="https://github.com/specto/specto-agent"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-indigo-600 hover:text-indigo-700"
@@ -101,7 +101,7 @@ export default function DocsLayout({
                   </li>
                   <li>
                     <a
-                      href="https://www.npmjs.com/package/leynai-agent"
+                      href="https://www.npmjs.com/package/specto-agent"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-indigo-600 hover:text-indigo-700"

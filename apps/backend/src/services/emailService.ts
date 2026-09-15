@@ -26,7 +26,7 @@ export async function sendInvitationEmail(
   const resend = new Resend(process.env.RESEND_API_KEY);
   
   await resend.emails.send({
-    from: 'LeynAI <noreply@leynai.com>',
+    from: 'Specto <noreply@specto.com>',
     to: data.to,
     subject: `You've been invited to ${data.projectName}`,
     html: `
@@ -41,7 +41,7 @@ export async function sendInvitationEmail(
           </a>
         </p>
         <p style="color: #666; font-size: 14px; margin-top: 20px;">
-          This invitation was sent by LeynAI. If you didn't expect this email, you can safely ignore it.
+          This invitation was sent by Specto. If you didn't expect this email, you can safely ignore it.
         </p>
       </div>
     `

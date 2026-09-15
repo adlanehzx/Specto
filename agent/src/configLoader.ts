@@ -1,5 +1,5 @@
 /**
- * Configuration Loader for leynai.json
+ * Configuration Loader for specto.json
  * Loads and validates test configuration for CI/CD integration
  */
 
@@ -7,9 +7,9 @@ import * as fs from "fs";
 import * as path from "path";
 
 /**
- * LeynAI configuration schema
+ * Specto configuration schema
  */
-export interface LeynAIConfig {
+export interface SpectoConfig {
   /** Backend server URL */
   server: string;
   /** API key for authentication (can use ${ENV_VAR} syntax) */
@@ -44,7 +44,7 @@ export interface LeynAIConfig {
 /**
  * Load configuration from file
  */
-export function loadConfig(configPath: string = "leynai.json"): LeynAIConfig {
+export function loadConfig(configPath: string = "specto.json"): SpectoConfig {
   // Resolve absolute path
   const absolutePath = path.isAbsolute(configPath)
     ? configPath
@@ -54,12 +54,12 @@ export function loadConfig(configPath: string = "leynai.json"): LeynAIConfig {
   if (!fs.existsSync(absolutePath)) {
     throw new Error(
       `Configuration file not found: ${absolutePath}\n` +
-        `Run 'leynai init' to create a configuration file.`
+        `Run 'specto init' to create a configuration file.`
     );
   }
 
   // Read and parse JSON
-  let config: LeynAIConfig;
+  let config: SpectoConfig;
   try {
     const content = fs.readFileSync(absolutePath, "utf-8");
     config = JSON.parse(content);
@@ -121,7 +121,7 @@ function expandEnvVars(str: string): string {
 /**
  * Validate configuration
  */
-export function validateConfig(config: LeynAIConfig): string[] {
+export function validateConfig(config: SpectoConfig): string[] {
   const errors: string[] = [];
 
   // Validate server URL
@@ -170,10 +170,10 @@ export function validateConfig(config: LeynAIConfig): string[] {
 /**
  * Generate default configuration
  */
-export function generateDefaultConfig(): LeynAIConfig {
+export function generateDefaultConfig(): SpectoConfig {
   return {
-    server: "https://api.leynai.com",
-    apiKey: "${LEYNAI_API_KEY}",
+    server: "https://api.specto.com",
+    apiKey: "${SPECTO_API_KEY}",
     project: "my-project-id",
     environments: {
       staging: {
@@ -206,8 +206,8 @@ export function generateDefaultConfig(): LeynAIConfig {
  * Save configuration to file
  */
 export function saveConfig(
-  config: LeynAIConfig,
-  configPath: string = "leynai.json"
+  config: SpectoConfig,
+  configPath: string = "specto.json"
 ): void {
   const absolutePath = path.isAbsolute(configPath)
     ? configPath

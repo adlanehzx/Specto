@@ -1,5 +1,5 @@
 /**
- * Types TypeScript pour le frontend LeynAI
+ * Types TypeScript pour le frontend Specto
  */
 
 /**

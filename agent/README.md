@@ -1,33 +1,33 @@
-# LeynAI Agent & CLI
+# Specto Agent & CLI
 
 ## 📦 Two Tools in One Package
 
 Ce package contient **2 outils distincts** :
 
-### 1. **LeynAI Agent** - Tunnel Management (Développement local)
+### 1. **Specto Agent** - Tunnel Management (Développement local)
 
 Expose votre localhost via cloudflared pour permettre l'exécution de tests E2E à distance.
 
 **Usage :**
 
 ```bash
-leynai-agent login --email=user@example.com --password=***
-leynai-agent start --ports=3000,8080
-leynai-agent status
-leynai-agent stop
+specto-agent login --email=user@example.com --password=***
+specto-agent start --ports=3000,8080
+specto-agent status
+specto-agent stop
 ```
 
-### 2. **LeynAI CLI** - CI/CD Integration (Tests automatisés)
+### 2. **Specto CLI** - CI/CD Integration (Tests automatisés)
 
-Exécute vos tests E2E et API depuis une configuration déclarative `leynai.json`.
+Exécute vos tests E2E et API depuis une configuration déclarative `specto.json`.
 
 **Usage :**
 
 ```bash
-leynai-agent init              # Génère leynai.json
-leynai-agent validate          # Valide la configuration
-leynai-agent test              # Lance les tests
-leynai-agent test --only=api   # Seulement les tests API
+specto-agent init              # Génère specto.json
+specto-agent validate          # Valide la configuration
+specto-agent test              # Lance les tests
+specto-agent test --only=api   # Seulement les tests API
 ```
 
 ---
@@ -43,10 +43,10 @@ npm run build
 npm link  # Nécessite sudo/admin
 ```
 
-Ensuite vous pouvez utiliser `leynai-agent` depuis n'importe où :
+Ensuite vous pouvez utiliser `specto-agent` depuis n'importe où :
 
 ```bash
-leynai-agent --help
+specto-agent --help
 ```
 
 ### Option 2 : Utilisation locale
@@ -55,7 +55,7 @@ leynai-agent --help
 cd agent
 npm install
 npm run build
-node bin/leynai-agent.js --help
+node bin/specto-agent.js --help
 ```
 
 ---
@@ -66,47 +66,47 @@ node bin/leynai-agent.js --help
 
 ```bash
 # Avec email/password
-leynai-agent login --email=user@example.com --password=***
+specto-agent login --email=user@example.com --password=***
 
 # Avec token JWT
-leynai-agent login --token=eyJhbGciOiJIUzI1NiIs...
+specto-agent login --token=eyJhbGciOiJIUzI1NiIs...
 
 # Backend personnalisé
-leynai-agent login --email=user@example.com --password=*** --backend=http://localhost:4000
+specto-agent login --email=user@example.com --password=*** --backend=http://localhost:4000
 ```
 
 ### `start` - Démarrer l'agent
 
 ```bash
 # Mode foreground (par défaut)
-leynai-agent start
+specto-agent start
 
 # Mode daemon (arrière-plan)
-leynai-agent start --daemon
+specto-agent start --daemon
 
 # Ports personnalisés
-leynai-agent start --ports=3000,8080,5173
+specto-agent start --ports=3000,8080,5173
 
 # Backend personnalisé
-leynai-agent start --backend=http://localhost:4000
+specto-agent start --backend=http://localhost:4000
 ```
 
 ### `status` - Vérifier l'état
 
 ```bash
-leynai-agent status
+specto-agent status
 ```
 
 ### `stop` - Arrêter l'agent
 
 ```bash
-leynai-agent stop
+specto-agent stop
 ```
 
 ### `logout` - Déconnexion
 
 ```bash
-leynai-agent logout
+specto-agent logout
 ```
 
 ---
@@ -116,49 +116,49 @@ leynai-agent logout
 ### `init` - Initialiser la configuration
 
 ```bash
-leynai-agent init              # Crée leynai.json
-leynai-agent init --force      # Écrase le fichier existant
+specto-agent init              # Crée specto.json
+specto-agent init --force      # Écrase le fichier existant
 ```
 
 ### `validate` - Valider la configuration
 
 ```bash
-leynai-agent validate
-leynai-agent validate --config=custom-config.json
+specto-agent validate
+specto-agent validate --config=custom-config.json
 ```
 
 ### `test` - Lancer les tests
 
 ```bash
 # Lancer tous les tests
-leynai-agent test
+specto-agent test
 
 # Avec configuration personnalisée
-leynai-agent test --config=custom-config.json
+specto-agent test --config=custom-config.json
 
 # Environnement spécifique
-leynai-agent test --env=production
+specto-agent test --env=production
 
 # Seulement les tests E2E
-leynai-agent test --only=e2e
+specto-agent test --only=e2e
 
 # Seulement les tests API
-leynai-agent test --only=api
+specto-agent test --only=api
 
 # Sortie JSON
-leynai-agent test --output=json
+specto-agent test --output=json
 ```
 
 ---
 
-## 📋 Configuration (leynai.json)
+## 📋 Configuration (specto.json)
 
 Structure du fichier de configuration pour le CLI :
 
 ```json
 {
   "server": "http://localhost:4000",
-  "apiKey": "${LEYNAI_API_KEY}",
+  "apiKey": "${SPECTO_API_KEY}",
   "project": "your-project-id",
   "environments": {
     "staging": {
@@ -193,10 +193,10 @@ Le CLI supporte la syntaxe `${VAR_NAME}` pour les variables d'environnement :
 
 ```bash
 # Définir la clé API
-export LEYNAI_API_KEY="your-api-key-from-dashboard"
+export SPECTO_API_KEY="your-api-key-from-dashboard"
 
 # Ou sur Windows PowerShell
-$env:LEYNAI_API_KEY="your-api-key-from-dashboard"
+$env:SPECTO_API_KEY="your-api-key-from-dashboard"
 ```
 
 ---
@@ -206,7 +206,7 @@ $env:LEYNAI_API_KEY="your-api-key-from-dashboard"
 ### GitHub Actions
 
 ```yaml
-name: LeynAI Tests
+name: Specto Tests
 on: [push]
 jobs:
   test:
@@ -220,20 +220,20 @@ jobs:
         run: cd agent && npm install && npm run build
       - name: Run tests
         env:
-          LEYNAI_API_KEY: ${{ secrets.LEYNAI_API_KEY }}
-        run: cd agent && node bin/leynai-agent.js test
+          SPECTO_API_KEY: ${{ secrets.SPECTO_API_KEY }}
+        run: cd agent && node bin/specto-agent.js test
 ```
 
 ### GitLab CI
 
 ```yaml
-leynai-tests:
+specto-tests:
   stage: test
   image: node:20-alpine
   before_script:
     - cd agent && npm install && npm run build
   script:
-    - node bin/leynai-agent.js test --env=production
+    - node bin/specto-agent.js test --env=production
 ```
 
 ### Jenkins
@@ -242,13 +242,13 @@ leynai-tests:
 pipeline {
     agent any
     environment {
-        LEYNAI_API_KEY = credentials('leynai-api-key')
+        SPECTO_API_KEY = credentials('specto-api-key')
     }
     stages {
         stage('Test') {
             steps {
                 sh 'cd agent && npm install && npm run build'
-                sh 'cd agent && node bin/leynai-agent.js test'
+                sh 'cd agent && node bin/specto-agent.js test'
             }
         }
     }
@@ -266,10 +266,10 @@ agent/
 │   ├── tunnel.ts         # Gestion cloudflared
 │   ├── cli.ts            # Commandes CLI (agent + test)
 │   ├── config.ts         # Configuration agent (auth, backend)
-│   ├── configLoader.ts   # Chargement leynai.json
+│   ├── configLoader.ts   # Chargement specto.json
 │   └── index.ts          # Point d'entrée
 ├── bin/
-│   └── leynai-agent.js   # CLI entry point
+│   └── specto-agent.js   # CLI entry point
 ├── dist/                 # Code compilé (TypeScript → JavaScript)
 ├── package.json
 └── tsconfig.json
@@ -287,7 +287,7 @@ agent/
 
 ## 🔄 Comment fonctionnent les Tunnels ?
 
-Quand vous lancez `leynai-agent start` :
+Quand vous lancez `specto-agent start` :
 
 1. **L'agent détecte les serveurs actifs** sur les ports configurés (3000, 8080, 5173 par défaut)
 2. **Crée des tunnels Cloudflare** pour chaque port actif
@@ -309,21 +309,21 @@ Quand vous lancez `leynai-agent start` :
 ### Agent ne démarre pas
 
 1. Vérifier que cloudflared est installé : `cloudflared --version`
-2. Vérifier l'authentification : `leynai-agent status`
+2. Vérifier l'authentification : `specto-agent status`
 3. Vérifier le backend : `curl http://localhost:4000/api/health`
 
 ### Tunnels n'apparaissent pas dans le frontend
 
-1. Vérifier que l'agent est bien démarré : `leynai-agent status`
+1. Vérifier que l'agent est bien démarré : `specto-agent status`
 2. Vérifier les logs backend (doit afficher "Registered X tunnel(s)")
 3. Rafraîchir le dashboard frontend (auto-refresh toutes les 5s)
 4. Vérifier que Redis est actif : `redis-cli ping` (doit retourner `PONG`)
 
 ### Tests CLI échouent
 
-1. Vérifier la configuration : `leynai-agent validate`
-2. Vérifier la clé API : `echo $LEYNAI_API_KEY`
-3. Vérifier le project ID dans `leynai.json`
+1. Vérifier la configuration : `specto-agent validate`
+2. Vérifier la clé API : `echo $SPECTO_API_KEY`
+3. Vérifier le project ID dans `specto.json`
 4. Vérifier les IDs des tests : `GET /api/cli/tests?projectId=xxx`
 
 ---

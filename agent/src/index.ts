@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { LeynAIAgent } from "./agent.js";
+import { SpectoAgent } from "./agent.js";
 import dotenv from "dotenv";
 import chalk from "chalk";
 
@@ -10,7 +10,7 @@ dotenv.config();
 const BANNER = `
 ╔════════════════════════════════════════════════════════════╗
 ║                                                            ║
-║                   🚀 LeynAI Agent v1.0.0                   ║
+║                   🚀 Specto Agent v1.0.0                   ║
 ║                                                            ║
 ║           Automatic Tunnel Management for Localhost        ║
 ║                                                            ║
@@ -27,7 +27,7 @@ async function main() {
     console.error(chalk.red("❌ Error: AUTH_TOKEN not found in environment"));
     console.log(chalk.yellow("\n💡 Instructions:"));
     console.log(chalk.white("1. Copy .env.example to .env"));
-    console.log(chalk.white("2. Get your auth token from LeynAI dashboard"));
+    console.log(chalk.white("2. Get your auth token from Specto dashboard"));
     console.log(chalk.white("3. Set AUTH_TOKEN=your_token_here in .env\n"));
     process.exit(1);
   }
@@ -41,7 +41,7 @@ async function main() {
   console.log(chalk.gray(`📡 Monitoring ports: ${ports.join(", ")}\n`));
 
   // Initialize agent
-  const agent = new LeynAIAgent({
+  const agent = new SpectoAgent({
     backendUrl,
     authToken,
     ports,

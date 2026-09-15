@@ -4,7 +4,7 @@ export default function CLIGuidePage() {
       <h1>💻 CLI Guide</h1>
 
       <p className="lead">
-        Complete guide to using the LeynAI command-line interface for developers
+        Complete guide to using the Specto command-line interface for developers
         who prefer working in the terminal.
       </p>
 
@@ -15,14 +15,14 @@ export default function CLIGuidePage() {
         <h3>Global Installation (Recommended)</h3>
         <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
           <pre className="text-sm">
-            <code>{`npm install -g leynai-agent`}</code>
+            <code>{`npm install -g specto-agent`}</code>
           </pre>
         </div>
 
         <h3>Using npx (No Installation)</h3>
         <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
           <pre className="text-sm">
-            <code>{`npx leynai-agent <command> [options]`}</code>
+            <code>{`npx specto-agent <command> [options]`}</code>
           </pre>
         </div>
 
@@ -105,13 +105,13 @@ sudo chmod +x /usr/local/bin/cloudflared`}</code>
         <h2>Commands</h2>
 
         {/* Login */}
-        <h3 id="login">leynai-agent login</h3>
-        <p>Authenticate with your LeynAI account.</p>
+        <h3 id="login">specto-agent login</h3>
+        <p>Authenticate with your Specto account.</p>
 
         <h4>Usage</h4>
         <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
           <pre className="text-sm">
-            <code>{`leynai-agent login [options]`}</code>
+            <code>{`specto-agent login [options]`}</code>
           </pre>
         </div>
 
@@ -176,22 +176,22 @@ sudo chmod +x /usr/local/bin/cloudflared`}</code>
         <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
           <pre className="text-sm">
             <code>{`# Login with email and password
-leynai-agent login --email user@example.com --password mypassword
+specto-agent login --email user@example.com --password mypassword
 
 # Login with token
-leynai-agent login --token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+specto-agent login --token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 # Login to production backend
-leynai-agent login --email user@example.com --password mypassword --backend https://api.leynai.com`}</code>
+specto-agent login --email user@example.com --password mypassword --backend https://api.specto.com`}</code>
           </pre>
         </div>
 
         <h4>What Happens</h4>
         <ol>
-          <li>Authenticates with the LeynAI backend</li>
+          <li>Authenticates with the Specto backend</li>
           <li>Validates the token</li>
           <li>
-            Saves credentials to <code>~/.config/leynai-agent/config.json</code>
+            Saves credentials to <code>~/.config/specto-agent/config.json</code>
           </li>
           <li>
             You're ready to use <code>start</code> command
@@ -200,16 +200,16 @@ leynai-agent login --email user@example.com --password mypassword --backend http
 
         {/* Start */}
         <h3 id="start" className="mt-8">
-          leynai-agent start
+          specto-agent start
         </h3>
         <p>
-          Start the LeynAI agent to monitor local servers and create tunnels.
+          Start the Specto agent to monitor local servers and create tunnels.
         </p>
 
         <h4>Usage</h4>
         <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
           <pre className="text-sm">
-            <code>{`leynai-agent start [options]`}</code>
+            <code>{`specto-agent start [options]`}</code>
           </pre>
         </div>
 
@@ -259,16 +259,16 @@ leynai-agent login --email user@example.com --password mypassword --backend http
         <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
           <pre className="text-sm">
             <code>{`# Start in foreground (see logs)
-leynai-agent start
+specto-agent start
 
 # Start as background daemon
-leynai-agent start --daemon
+specto-agent start --daemon
 
 # Monitor specific ports
-leynai-agent start --ports 3000,4200,8080
+specto-agent start --ports 3000,4200,8080
 
 # Production backend with daemon
-leynai-agent start --daemon --backend https://api.leynai.com --ports 3000`}</code>
+specto-agent start --daemon --backend https://api.specto.com --ports 3000`}</code>
           </pre>
         </div>
 
@@ -307,28 +307,28 @@ leynai-agent start --daemon --backend https://api.leynai.com --ports 3000`}</cod
           <li>Agent checks authentication</li>
           <li>Scans specified ports for active servers</li>
           <li>Creates cloudflared tunnels for each active server</li>
-          <li>Registers tunnel URLs with LeynAI backend</li>
+          <li>Registers tunnel URLs with Specto backend</li>
           <li>Starts heartbeat to keep tunnels alive</li>
           <li>Monitors for new servers on configured ports</li>
         </ol>
 
         {/* Status */}
         <h3 id="status" className="mt-8">
-          leynai-agent status
+          specto-agent status
         </h3>
         <p>Check agent status, authentication, and active tunnels.</p>
 
         <h4>Usage</h4>
         <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
           <pre className="text-sm">
-            <code>{`leynai-agent status`}</code>
+            <code>{`specto-agent status`}</code>
           </pre>
         </div>
 
         <h4>Example Output</h4>
         <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
           <pre className="text-sm">
-            <code>{`📊 LeynAI Agent Status
+            <code>{`📊 Specto Agent Status
 
 Authentication: ✓ Logged in
 Email: user@example.com
@@ -345,14 +345,14 @@ Monitored Ports: 3000, 8080, 5173`}</code>
 
         {/* Stop */}
         <h3 id="stop" className="mt-8">
-          leynai-agent stop
+          specto-agent stop
         </h3>
         <p>Stop the background agent daemon.</p>
 
         <h4>Usage</h4>
         <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
           <pre className="text-sm">
-            <code>{`leynai-agent stop`}</code>
+            <code>{`specto-agent stop`}</code>
           </pre>
         </div>
 
@@ -365,14 +365,14 @@ Monitored Ports: 3000, 8080, 5173`}</code>
 
         {/* Logout */}
         <h3 id="logout" className="mt-8">
-          leynai-agent logout
+          specto-agent logout
         </h3>
         <p>Clear saved credentials and stop the agent.</p>
 
         <h4>Usage</h4>
         <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
           <pre className="text-sm">
-            <code>{`leynai-agent logout`}</code>
+            <code>{`specto-agent logout`}</code>
           </pre>
         </div>
 
@@ -380,7 +380,7 @@ Monitored Ports: 3000, 8080, 5173`}</code>
         <ol>
           <li>Stops running agent (if active)</li>
           <li>
-            Deletes stored credentials from <code>~/.config/leynai-agent/</code>
+            Deletes stored credentials from <code>~/.config/specto-agent/</code>
           </li>
           <li>
             You'll need to run <code>login</code> again to use the agent
@@ -396,15 +396,15 @@ Monitored Ports: 3000, 8080, 5173`}</code>
         <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
           <pre className="text-sm">
             <code>{`# Morning: Start agent in background
-leynai-agent start --daemon
+specto-agent start --daemon
 
 # ... develop all day ...
 
 # Evening: Check status
-leynai-agent status
+specto-agent status
 
 # Stop when done
-leynai-agent stop`}</code>
+specto-agent stop`}</code>
           </pre>
         </div>
 
@@ -415,10 +415,10 @@ leynai-agent stop`}</code>
 npm run dev
 
 # In another terminal, start agent for that port only
-leynai-agent start --ports 3000
+specto-agent start --ports 3000
 
 # Agent creates tunnel, you see logs
-# Go to LeynAI dashboard and create tests
+# Go to Specto dashboard and create tests
 # Press Ctrl+C to stop when done`}</code>
           </pre>
         </div>
@@ -427,13 +427,13 @@ leynai-agent start --ports 3000
         <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
           <pre className="text-sm">
             <code>{`# Login to production
-leynai-agent login --email pro@company.com --password *** --backend https://api.leynai.com
+specto-agent login --email pro@company.com --password *** --backend https://api.specto.com
 
 # Start daemon with production backend
-leynai-agent start --daemon --backend https://api.leynai.com
+specto-agent start --daemon --backend https://api.specto.com
 
 # Check status
-leynai-agent status`}</code>
+specto-agent status`}</code>
           </pre>
         </div>
 
@@ -446,7 +446,7 @@ npm run dev:api        # port 4000
 npm run dev:admin      # port 5000
 
 # Monitor all ports
-leynai-agent start --daemon --ports 3000,4000,5000
+specto-agent start --daemon --ports 3000,4000,5000
 
 # Agent creates tunnels for all three apps`}</code>
           </pre>
@@ -457,17 +457,17 @@ leynai-agent start --daemon --ports 3000,4000,5000
       <section className="mt-12">
         <h2>Troubleshooting</h2>
 
-        <h3>"command not found: leynai-agent"</h3>
+        <h3>"command not found: specto-agent"</h3>
         <p>
           <strong>Solution:</strong>
         </p>
         <ul>
           <li>
             Make sure you installed globally:{" "}
-            <code>npm install -g leynai-agent</code>
+            <code>npm install -g specto-agent</code>
           </li>
           <li>
-            Or use npx: <code>npx leynai-agent --help</code>
+            Or use npx: <code>npx specto-agent --help</code>
           </li>
           <li>Restart your terminal after installation</li>
         </ul>
@@ -493,7 +493,7 @@ leynai-agent start --daemon --ports 3000,4000,5000
         </p>
         <ul>
           <li>
-            Run <code>leynai-agent login</code> first
+            Run <code>specto-agent login</code> first
           </li>
           <li>Make sure you have valid credentials</li>
         </ul>
@@ -509,7 +509,7 @@ leynai-agent start --daemon --ports 3000,4000,5000
             Test manually: <code>curl http://localhost:3000</code>
           </li>
           <li>
-            Specify correct port: <code>leynai-agent start --ports 3000</code>
+            Specify correct port: <code>specto-agent start --ports 3000</code>
           </li>
         </ul>
 
@@ -520,10 +520,10 @@ leynai-agent start --daemon --ports 3000,4000,5000
         <ul>
           <li>Check if backend is running (if using localhost)</li>
           <li>
-            Verify backend URL: <code>leynai-agent status</code>
+            Verify backend URL: <code>specto-agent status</code>
           </li>
           <li>
-            For production: use <code>--backend https://api.leynai.com</code>
+            For production: use <code>--backend https://api.specto.com</code>
           </li>
         </ul>
 
@@ -533,14 +533,14 @@ leynai-agent start --daemon --ports 3000,4000,5000
         </p>
         <ul>
           <li>
-            Check status: <code>leynai-agent status</code>
+            Check status: <code>specto-agent status</code>
           </li>
           <li>Verify tunnels are listed</li>
           <li>Test tunnel URL in browser</li>
           <li>Check if firewall is blocking cloudflared</li>
           <li>
             Restart agent:{" "}
-            <code>leynai-agent stop && leynai-agent start --daemon</code>
+            <code>specto-agent stop && specto-agent start --daemon</code>
           </li>
         </ul>
       </section>
@@ -554,11 +554,11 @@ leynai-agent start --daemon --ports 3000,4000,5000
         <ul>
           <li>
             <strong>Linux/macOS:</strong>{" "}
-            <code>~/.config/leynai-agent/config.json</code>
+            <code>~/.config/specto-agent/config.json</code>
           </li>
           <li>
             <strong>Windows:</strong>{" "}
-            <code>%APPDATA%\leynai-agent\config.json</code>
+            <code>%APPDATA%\specto-agent\config.json</code>
           </li>
         </ul>
 
@@ -607,10 +607,10 @@ PORTS=3000,8080,5173`}</code>
         <p>Daemon PID is stored in:</p>
         <ul>
           <li>
-            <strong>Linux/macOS:</strong> <code>/tmp/leynai-agent.pid</code>
+            <strong>Linux/macOS:</strong> <code>/tmp/specto-agent.pid</code>
           </li>
           <li>
-            <strong>Windows:</strong> <code>%TEMP%\leynai-agent.pid</code>
+            <strong>Windows:</strong> <code>%TEMP%\specto-agent.pid</code>
           </li>
         </ul>
 

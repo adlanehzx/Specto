@@ -44,7 +44,7 @@ export function printInstallInstructions(): void {
 ║              CLOUDFLARED NON INSTALLÉ                             ║
 ╚═══════════════════════════════════════════════════════════════════╝
 
-LeynAI Agent utilise cloudflared pour créer des tunnels sécurisés.
+Specto Agent utilise cloudflared pour créer des tunnels sécurisés.
 
 📦 INSTALLATION :
 

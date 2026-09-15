@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * LeynAI Agent CLI
+ * Specto Agent CLI
  * Entry point for the command-line interface
  */
 
@@ -24,16 +24,16 @@ import {
 const program = new Command();
 
 program
-  .name("leynai-agent")
+  .name("specto-agent")
   .description(
-    "LeynAI Agent - Automatic tunnel management for localhost testing"
+    "Specto Agent - Automatic tunnel management for localhost testing"
   )
   .version("1.0.0");
 
 // Login command
 program
   .command("login")
-  .description("Authenticate with LeynAI")
+  .description("Authenticate with Specto")
   .option("-e, --email <email>", "Email address")
   .option("-p, --password <password>", "Password")
   .option("-t, --token <token>", "JWT token (from dashboard)")
@@ -49,7 +49,7 @@ program
 // Start command
 program
   .command("start")
-  .description("Start the LeynAI agent")
+  .description("Start the Specto agent")
   .option("-d, --daemon", "Run as background daemon")
   .option(
     "--ports <ports>",
@@ -95,7 +95,7 @@ program
 // Logout command
 program
   .command("logout")
-  .description("Logout from LeynAI")
+  .description("Logout from Specto")
   .action(async () => {
     try {
       await logout();
@@ -108,8 +108,8 @@ program
 // Test command (CI/CD integration)
 program
   .command("test")
-  .description("Run tests from leynai.json configuration")
-  .option("-c, --config <path>", "Path to config file", "leynai.json")
+  .description("Run tests from specto.json configuration")
+  .option("-c, --config <path>", "Path to config file", "specto.json")
   .option("-e, --env <name>", "Environment to use", "local")
   .option(
     "--only <type>",
@@ -128,7 +128,7 @@ program
 // Init command
 program
   .command("init")
-  .description("Generate leynai.json configuration file")
+  .description("Generate specto.json configuration file")
   .option("-f, --force", "Overwrite existing configuration")
   .action(async (options) => {
     try {
@@ -142,8 +142,8 @@ program
 // Validate command
 program
   .command("validate")
-  .description("Validate leynai.json configuration")
-  .option("-c, --config <path>", "Path to config file", "leynai.json")
+  .description("Validate specto.json configuration")
+  .option("-c, --config <path>", "Path to config file", "specto.json")
   .action(async (options) => {
     try {
       await validate(options);

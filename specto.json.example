@@ -1,6 +1,6 @@
 {
   "server": "http://localhost:4000",
-  "apiKey": "${LEYNAI_API_KEY}",
+  "apiKey": "${SPECTO_API_KEY}",
   "project": "your-project-id-here",
   "environments": {
     "staging": {

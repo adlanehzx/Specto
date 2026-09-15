@@ -15,7 +15,7 @@ interface AgentConfig {
 
 // Create config store
 const config = new Conf<AgentConfig>({
-  projectName: "leynai-agent",
+  projectName: "specto-agent",
   schema: {
     authToken: {
       type: "string",
@@ -135,7 +135,7 @@ export function loadConfig(): Config {
 
   if (!authToken) {
     throw new Error(
-      'Not authenticated. Please run "leynai-agent login" first.'
+      'Not authenticated. Please run "specto-agent login" first.'
     );
   }
 

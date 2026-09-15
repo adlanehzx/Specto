@@ -145,7 +145,7 @@ export async function checkBucketHealth(): Promise<boolean> {
  * - S3_ENDPOINT=https://nyc3.digitaloceanspaces.com
  * - S3_ACCESS_KEY=votre_access_key
  * - S3_SECRET_KEY=votre_secret_key
- * - S3_BUCKET=leynai-screenshots
+ * - S3_BUCKET=specto-screenshots
  * - S3_REGION=nyc3
  * - S3_USE_SSL=true
  */

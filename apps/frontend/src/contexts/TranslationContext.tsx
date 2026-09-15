@@ -244,7 +244,7 @@ const translations: Record<Locale, Record<string, any>> = {
         login: "Sign In",
       },
       features: {
-        title: "Why LeynAI?",
+        title: "Why Specto?",
         ai: {
           title: "AI-Powered",
           description: "Generate tests automatically from natural language",
@@ -276,13 +276,13 @@ const translations: Record<Locale, Record<string, any>> = {
       cta: {
         title: "Ready to automate your tests?",
         subtitleLoggedIn: "Return to your dashboard to create new tests.",
-        subtitleLoggedOut: "Join LeynAI today and start testing smarter.",
+        subtitleLoggedOut: "Join Specto today and start testing smarter.",
         buttonLoggedIn: "Go to Dashboard",
         buttonLoggedOut: "Create a free account",
       },
       footer: {
         tagline: "Smart automated testing for the modern web",
-        copyright: "© 2025 LeynAI. All rights reserved.",
+        copyright: "© 2025 Specto. All rights reserved.",
       },
     },
   },
@@ -514,7 +514,7 @@ const translations: Record<Locale, Record<string, any>> = {
         login: "Se connecter",
       },
       features: {
-        title: "Pourquoi LeynAI ?",
+        title: "Pourquoi Specto ?",
         ai: {
           title: "IA intégrée",
           description: "Générez des tests automatiquement en langage naturel",
@@ -549,13 +549,13 @@ const translations: Record<Locale, Record<string, any>> = {
         subtitleLoggedIn:
           "Retournez à votre dashboard pour créer de nouveaux tests.",
         subtitleLoggedOut:
-          "Rejoignez LeynAI aujourd'hui et commencez à tester plus intelligemment.",
+          "Rejoignez Specto aujourd'hui et commencez à tester plus intelligemment.",
         buttonLoggedIn: "Accéder au Dashboard",
         buttonLoggedOut: "Créer un compte gratuit",
       },
       footer: {
         tagline: "Tests automatisés intelligents pour le web moderne",
-        copyright: "© 2025 LeynAI. Tous droits réservés.",
+        copyright: "© 2025 Specto. Tous droits réservés.",
       },
     },
   },

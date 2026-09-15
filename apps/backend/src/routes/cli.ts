@@ -1,5 +1,5 @@
 /**
- * CLI Routes - API endpoints for LeynAI CLI tool
+ * CLI Routes - API endpoints for Specto CLI tool
  * Allows CI/CD integration via command-line interface
  */
 

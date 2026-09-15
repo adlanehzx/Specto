@@ -103,8 +103,8 @@ app.get("/", (req, res) => {
       </style>
     </head>
     <body>
-      <h1>🧪 Test App pour LeynAI</h1>
-      <p>Une application minimale pour tester LeynAI CLI</p>
+      <h1>🧪 Test App pour Specto</h1>
+      <p>Une application minimale pour tester Specto CLI</p>
       
       <div>
         <button onclick="addItem()">Ajouter un élément</button>

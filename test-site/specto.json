@@ -13,7 +13,7 @@
       {
         "name": "Page d'accueil - Titre",
         "url": "/",
-        "description": "Vérifie que la page affiche le titre 'Test App pour LeynAI'"
+        "description": "Vérifie que la page affiche le titre 'Test App pour Specto'"
       },
       {
         "name": "Ajouter des éléments",

@@ -1,10 +1,10 @@
 export default function DocsPage() {
   return (
     <div className="prose prose-indigo max-w-none">
-      <h1>Welcome to LeynAI Documentation</h1>
+      <h1>Welcome to Specto Documentation</h1>
 
       <p className="lead">
-        LeynAI is an AI-powered testing platform that automatically generates
+        Specto is an AI-powered testing platform that automatically generates
         and runs Playwright tests for your web applications. Test your localhost
         applications with automatic tunnel management.
       </p>
@@ -24,10 +24,10 @@ export default function DocsPage() {
         <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
           <pre className="text-sm">
             <code>{`# Install globally
-npm install -g leynai-agent
+npm install -g specto-agent
 
 # Or use with npx
-npx leynai-agent --help`}</code>
+npx specto-agent --help`}</code>
           </pre>
         </div>
 
@@ -92,7 +92,7 @@ npx leynai-agent --help`}</code>
                   Install the Agent
                 </h3>
                 <p className="text-gray-600">
-                  Install the LeynAI agent on your local machine using npm or
+                  Install the Specto agent on your local machine using npm or
                   download the desktop app.
                 </p>
               </div>
@@ -107,7 +107,7 @@ npx leynai-agent --help`}</code>
                   Authenticate
                 </h3>
                 <p className="text-gray-600">
-                  Login with your LeynAI account credentials to connect the
+                  Login with your Specto account credentials to connect the
                   agent to your dashboard.
                 </p>
               </div>
@@ -152,7 +152,7 @@ npx leynai-agent --help`}</code>
                   Generate Tests
                 </h3>
                 <p className="text-gray-600">
-                  Use the LeynAI dashboard to describe your tests in plain
+                  Use the Specto dashboard to describe your tests in plain
                   English. AI generates Playwright code.
                 </p>
               </div>
@@ -167,7 +167,7 @@ npx leynai-agent --help`}</code>
                   Tests Run Remotely
                 </h3>
                 <p className="text-gray-600">
-                  Tests execute on LeynAI's cloud infrastructure via the tunnel,
+                  Tests execute on Specto's cloud infrastructure via the tunnel,
                   testing your local app remotely.
                 </p>
               </div>
@@ -316,7 +316,7 @@ npx leynai-agent --help`}</code>
                   ⚙️ CI/CD Integration
                 </h3>
                 <p className="text-gray-600 mt-1">
-                  Integrate LeynAI into your deployment pipeline
+                  Integrate Specto into your deployment pipeline
                 </p>
               </div>
               <span className="text-2xl">→</span>
@@ -347,11 +347,11 @@ npx leynai-agent --help`}</code>
         <div className="not-prose bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg p-8">
           <h2 className="text-2xl font-bold mb-4">Need Help?</h2>
           <p className="text-indigo-100 mb-6">
-            Our team is here to help you get the most out of LeynAI.
+            Our team is here to help you get the most out of Specto.
           </p>
           <div className="flex flex-wrap gap-4">
             <a
-              href="https://github.com/leynai/leynai-agent/issues"
+              href="https://github.com/specto/specto-agent/issues"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-white text-indigo-600 px-6 py-3 rounded-lg font-semibold hover:bg-indigo-50 transition-colors"
@@ -359,7 +359,7 @@ npx leynai-agent --help`}</code>
               GitHub Issues
             </a>
             <a
-              href="mailto:support@leynai.com"
+              href="mailto:support@specto.com"
               className="bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-800 transition-colors"
             >
               Email Support

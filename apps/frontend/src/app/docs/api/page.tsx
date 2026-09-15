@@ -4,7 +4,7 @@ export default function APIReferencePage() {
       <h1>📚 API Reference</h1>
 
       <p className="lead">
-        Complete API documentation for integrating LeynAI programmatically into
+        Complete API documentation for integrating Specto programmatically into
         your applications and workflows.
       </p>
 
@@ -15,7 +15,7 @@ export default function APIReferencePage() {
         <div className="not-prose bg-gray-50 border border-gray-200 rounded-lg p-4">
           <p className="text-sm text-gray-600 mb-2">Production</p>
           <code className="text-lg text-indigo-600">
-            https://api.leynai.com
+            https://api.specto.com
           </code>
         </div>
 
@@ -42,7 +42,7 @@ export default function APIReferencePage() {
 
         <h3>Get Your Token</h3>
         <ol>
-          <li>Login to LeynAI dashboard</li>
+          <li>Login to Specto dashboard</li>
           <li>Open browser DevTools (F12)</li>
           <li>Go to Application/Storage → Local Storage</li>
           <li>
@@ -282,9 +282,9 @@ export default function APIReferencePage() {
       { "step": "Verify dashboard", "status": "passed" }
     ],
     "screenshots": [
-      "https://storage.leynai.com/screenshots/test-1-step-1.png"
+      "https://storage.specto.com/screenshots/test-1-step-1.png"
     ],
-    "video": "https://storage.leynai.com/videos/test-1.webm"
+    "video": "https://storage.specto.com/videos/test-1.webm"
   },
   "createdAt": "2025-11-01T10:00:00.000Z",
   "updatedAt": "2025-11-01T10:05:00.000Z"
@@ -335,7 +335,7 @@ export default function APIReferencePage() {
           <code className="text-indigo-600">/api/agent/register</code>
 
           <p className="text-gray-600 mt-4 mb-4">
-            Register active tunnels from LeynAI agent. Used internally by the
+            Register active tunnels from Specto agent. Used internally by the
             agent.
           </p>
 
@@ -553,7 +553,7 @@ export default function APIReferencePage() {
           <pre className="text-sm">
             <code>{`const axios = require('axios');
 
-const API_URL = 'https://api.leynai.com';
+const API_URL = 'https://api.specto.com';
 const TOKEN = 'your_jwt_token';
 
 // Create a test
@@ -607,7 +607,7 @@ getTests();`}</code>
           <pre className="text-sm">
             <code>{`import requests
 
-API_URL = 'https://api.leynai.com'
+API_URL = 'https://api.specto.com'
 TOKEN = 'your_jwt_token'
 
 headers = {
@@ -658,12 +658,12 @@ get_tests()`}</code>
         <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
           <pre className="text-sm">
             <code>{`# Login
-curl -X POST https://api.leynai.com/api/auth/login \\
+curl -X POST https://api.specto.com/api/auth/login \\
   -H "Content-Type: application/json" \\
   -d '{"email": "user@example.com", "password": "password"}'
 
 # Create test
-curl -X POST https://api.leynai.com/api/tests \\
+curl -X POST https://api.specto.com/api/tests \\
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -673,15 +673,15 @@ curl -X POST https://api.leynai.com/api/tests \\
   }'
 
 # Get all tests
-curl -X GET https://api.leynai.com/api/tests \\
+curl -X GET https://api.specto.com/api/tests \\
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 
 # Get specific test
-curl -X GET https://api.leynai.com/api/tests/1 \\
+curl -X GET https://api.specto.com/api/tests/1 \\
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 
 # Delete test
-curl -X DELETE https://api.leynai.com/api/tests/1 \\
+curl -X DELETE https://api.specto.com/api/tests/1 \\
   -H "Authorization: Bearer YOUR_JWT_TOKEN"`}</code>
           </pre>
         </div>
@@ -748,19 +748,19 @@ curl -X DELETE https://api.leynai.com/api/tests/1 \\
             <div className="bg-white bg-opacity-20 rounded-lg p-4">
               <h3 className="font-semibold mb-2">JavaScript/TypeScript</h3>
               <code className="text-sm text-purple-100">
-                npm install @leynai/sdk
+                npm install @specto/sdk
               </code>
             </div>
             <div className="bg-white bg-opacity-20 rounded-lg p-4">
               <h3 className="font-semibold mb-2">Python</h3>
               <code className="text-sm text-purple-100">
-                pip install leynai
+                pip install specto
               </code>
             </div>
             <div className="bg-white bg-opacity-20 rounded-lg p-4">
               <h3 className="font-semibold mb-2">Go</h3>
               <code className="text-sm text-purple-100">
-                go get github.com/leynai/go-sdk
+                go get github.com/specto/go-sdk
               </code>
             </div>
           </div>

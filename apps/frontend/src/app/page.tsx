@@ -35,7 +35,7 @@ export default function LandingPage() {
                 <RocketIcon className="w-5 h-5 text-white" />
               </div>
               <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                LeynAI
+                Specto
               </span>
             </Link>
 
@@ -253,7 +253,7 @@ export default function LandingPage() {
               <div className="p-2 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl">
                 <RocketIcon className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold">LeynAI</span>
+              <span className="text-xl font-bold">Specto</span>
             </div>
 
             <div className="flex gap-8 text-sm text-gray-400">
@@ -269,7 +269,7 @@ export default function LandingPage() {
             </div>
 
             <p className="text-sm text-gray-500">
-              © 2025 LeynAI. All rights reserved.
+              © 2025 Specto. All rights reserved.
             </p>
           </div>
         </div>

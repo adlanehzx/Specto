@@ -9,23 +9,23 @@ services:
   # --------------------------------------------
   postgres:
     image: postgres:16-alpine
-    container_name: leynai-postgres
+    container_name: specto-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-leynai}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-leynai_secret}
-      POSTGRES_DB: ${POSTGRES_DB:-leynai_db}
+      POSTGRES_USER: ${POSTGRES_USER:-specto}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-specto_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-specto_db}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     networks:
-      - leynai-network
+      - specto-network
     healthcheck:
       test:
         [
           "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER:-leynai} -d ${POSTGRES_DB:-leynai_db}",
+          "pg_isready -U ${POSTGRES_USER:-specto} -d ${POSTGRES_DB:-specto_db}",
         ]
       interval: 10s
       timeout: 5s
@@ -36,7 +36,7 @@ services:
   # --------------------------------------------
   redis:
     image: redis:7-alpine
-    container_name: leynai-redis
+    container_name: specto-redis
     restart: unless-stopped
     command: redis-server --requirepass ${REDIS_PASSWORD:-redis_secret}
     volumes:
@@ -44,7 +44,7 @@ services:
     ports:
       - "${REDIS_PORT:-6379}:6379"
     networks:
-      - leynai-network
+      - specto-network
     healthcheck:
       test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
       interval: 10s
@@ -56,7 +56,7 @@ services:
   # --------------------------------------------
   minio:
     image: minio/minio:latest
-    container_name: leynai-minio
+    container_name: specto-minio
     restart: unless-stopped
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
@@ -68,7 +68,7 @@ services:
       - "${MINIO_PORT:-9000}:9000" # API
       - "${MINIO_CONSOLE_PORT:-9001}:9001" # Console Web
     networks:
-      - leynai-network
+      - specto-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
@@ -80,17 +80,17 @@ services:
   # --------------------------------------------
   minio-init:
     image: minio/mc:latest
-    container_name: leynai-minio-init
+    container_name: specto-minio-init
     depends_on:
       - minio
     networks:
-      - leynai-network
+      - specto-network
     entrypoint: >
       /bin/sh -c "
       sleep 5;
-      mc alias set leynai http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin123};
-      mc mb leynai/screenshots --ignore-existing;
-      mc anonymous set download leynai/screenshots;
+      mc alias set specto http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin123};
+      mc mb specto/screenshots --ignore-existing;
+      mc anonymous set download specto/screenshots;
       echo 'MinIO bucket created successfully';
       exit 0;
       "
@@ -102,7 +102,7 @@ services:
     build:
       context: ./apps/backend
       dockerfile: Dockerfile
-    container_name: leynai-backend
+    container_name: specto-backend
     restart: unless-stopped
     depends_on:
       postgres:
@@ -117,7 +117,7 @@ services:
       PORT: 4000
 
       # Database
-      DATABASE_URL: postgresql://${POSTGRES_USER:-leynai}:${POSTGRES_PASSWORD:-leynai_secret}@postgres:5432/${POSTGRES_DB:-leynai_db}?schema=public
+      DATABASE_URL: postgresql://${POSTGRES_USER:-specto}:${POSTGRES_PASSWORD:-specto_secret}@postgres:5432/${POSTGRES_DB:-specto_db}?schema=public
 
       # Redis
       REDIS_HOST: redis
@@ -149,7 +149,7 @@ services:
     ports:
       - "${BACKEND_PORT:-4000}:4000"
     networks:
-      - leynai-network
+      - specto-network
 
   # --------------------------------------------
   # Frontend (Next.js)
@@ -158,7 +158,7 @@ services:
     build:
       context: ./apps/frontend
       dockerfile: Dockerfile
-    container_name: leynai-frontend
+    container_name: specto-frontend
     restart: unless-stopped
     depends_on:
       - backend
@@ -170,13 +170,13 @@ services:
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     networks:
-      - leynai-network
+      - specto-network
 
 # ============================================
 # NETWORKS
 # ============================================
 networks:
-  leynai-network:
+  specto-network:
     driver: bridge
 
 # ============================================

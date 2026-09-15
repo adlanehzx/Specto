@@ -1,6 +1,6 @@
 /**
  * CLI Command Implementations
- * Handles user commands for the LeynAI agent
+ * Handles user commands for the Specto agent
  */
 
 import axios from "axios";
@@ -48,7 +48,7 @@ interface StartOptions {
 }
 
 /**
- * Login command - Authenticate with LeynAI backend
+ * Login command - Authenticate with Specto backend
  */
 export async function login(options: LoginOptions): Promise<void> {
   try {
@@ -113,7 +113,7 @@ export async function login(options: LoginOptions): Promise<void> {
     if (options.email) {
       console.log(chalk.gray(`Email: ${options.email}`));
     }
-    console.log(chalk.yellow('\nRun "leynai-agent start" to begin monitoring'));
+    console.log(chalk.yellow('\nRun "specto-agent start" to begin monitoring'));
   } catch (error: any) {
     console.error(chalk.red("✗ Login failed:"), error.message);
     throw error;
@@ -121,14 +121,14 @@ export async function login(options: LoginOptions): Promise<void> {
 }
 
 /**
- * Start command - Start the LeynAI agent
+ * Start command - Start the Specto agent
  */
 export async function start(options: StartOptions): Promise<void> {
   try {
     // Check authentication
     if (!isAuthenticated()) {
       throw new Error(
-        'Not authenticated. Please run "leynai-agent login" first'
+        'Not authenticated. Please run "specto-agent login" first'
       );
     }
 
@@ -144,7 +144,7 @@ export async function start(options: StartOptions): Promise<void> {
       setPorts(ports);
     }
 
-    console.log(chalk.blue("\n🚀 Starting LeynAI Agent\n"));
+    console.log(chalk.blue("\n🚀 Starting Specto Agent\n"));
     console.log(chalk.gray(`Backend: ${backendUrl}`));
     console.log(chalk.gray(`Monitoring ports: ${ports.join(", ")}`));
     console.log(chalk.gray(`Email: ${getUserEmail() || "N/A"}\n`));
@@ -173,9 +173,9 @@ async function startForeground(
   const token = getAuthToken()!;
 
   // Dynamic import to avoid circular dependency
-  const { LeynAIAgent } = await import("./agent.js");
+  const { SpectoAgent } = await import("./agent.js");
 
-  const agent = new LeynAIAgent({
+  const agent = new SpectoAgent({
     authToken: token,
     backendUrl,
     ports,
@@ -217,7 +217,7 @@ async function startDaemon(backendUrl: string, ports: number[]): Promise<void> {
 
   // Create daemon process
   // Pass both the canonical env names (AUTH_TOKEN, BACKEND_URL, PORTS)
-  // and the legacy LEYNAI_* names for backward compatibility.
+  // and the legacy SPECTO_* names for backward compatibility.
   const child = spawn(process.execPath, [path.join(__dirname, "index.js")], {
     detached: true,
     stdio: "ignore",
@@ -228,9 +228,9 @@ async function startDaemon(backendUrl: string, ports: number[]): Promise<void> {
       BACKEND_URL: backendUrl,
       PORTS: ports.join(","),
       // legacy names (kept to avoid breaking older installs)
-      LEYNAI_AUTH_TOKEN: getAuthToken()!,
-      LEYNAI_BACKEND_URL: backendUrl,
-      LEYNAI_PORTS: ports.join(","),
+      SPECTO_AUTH_TOKEN: getAuthToken()!,
+      SPECTO_BACKEND_URL: backendUrl,
+      SPECTO_PORTS: ports.join(","),
     },
   });
 
@@ -240,8 +240,8 @@ async function startDaemon(backendUrl: string, ports: number[]): Promise<void> {
   fs.writeFileSync(pidFile, child.pid!.toString());
 
   console.log(chalk.green(`✓ Agent started in background (PID: ${child.pid})`));
-  console.log(chalk.gray('Run "leynai-agent status" to check status'));
-  console.log(chalk.gray('Run "leynai-agent stop" to stop the agent'));
+  console.log(chalk.gray('Run "specto-agent status" to check status'));
+  console.log(chalk.gray('Run "specto-agent stop" to stop the agent'));
 }
 
 /**
@@ -252,7 +252,7 @@ export async function stop(): Promise<void> {
     // Check authentication
     if (!isAuthenticated()) {
       throw new Error(
-        'Not authenticated. Please run "leynai-agent login" first'
+        'Not authenticated. Please run "specto-agent login" first'
       );
     }
 
@@ -308,12 +308,12 @@ export async function status(): Promise<void> {
   try {
     const pidFile = getPidFilePath();
 
-    console.log(chalk.blue("\n📊 LeynAI Agent Status\n"));
+    console.log(chalk.blue("\n📊 Specto Agent Status\n"));
 
     // Check authentication
     if (!isAuthenticated()) {
       console.log(chalk.yellow("Authentication: Not logged in"));
-      console.log(chalk.gray('Run "leynai-agent login" to authenticate\n'));
+      console.log(chalk.gray('Run "specto-agent login" to authenticate\n'));
       return;
     }
 
@@ -402,7 +402,7 @@ export async function logout(): Promise<void> {
  * Helper: Get PID file path
  */
 function getPidFilePath(): string {
-  return path.join(os.tmpdir(), "leynai-agent.pid");
+  return path.join(os.tmpdir(), "specto-agent.pid");
 }
 
 /**
@@ -418,7 +418,7 @@ function isProcessRunning(pid: number): boolean {
 }
 
 /**
- * Test command - Run tests from leynai.json (CI/CD integration)
+ * Test command - Run tests from specto.json (CI/CD integration)
  */
 export async function test(options: {
   config?: string;
@@ -427,14 +427,14 @@ export async function test(options: {
   output?: "console" | "json";
 }): Promise<void> {
   try {
-    // Note: test command uses API Keys from leynai.json, not JWT tokens
+    // Note: test command uses API Keys from specto.json, not JWT tokens
     // No need to check isAuthenticated() here
 
     const { loadConfig } = await import("./configLoader.js");
     const tunnel = await import("./tunnel.js");
 
     // Load configuration
-    const configPath = options.config || "leynai.json";
+    const configPath = options.config || "specto.json";
     console.log(chalk.blue(`\n📋 Loading configuration from ${configPath}...`));
 
     const config = loadConfig(configPath);
@@ -573,11 +573,11 @@ export async function test(options: {
 }
 
 /**
- * Init command - Generate leynai.json configuration file
+ * Init command - Generate specto.json configuration file
  */
 export async function init(options: { force?: boolean }): Promise<void> {
   try {
-    const configPath = "leynai.json";
+    const configPath = "specto.json";
 
     // Check if file already exists
     if (fs.existsSync(configPath) && !options.force) {
@@ -586,7 +586,7 @@ export async function init(options: { force?: boolean }): Promise<void> {
       );
     }
 
-    console.log(chalk.blue("\n📝 Generating leynai.json configuration...\n"));
+    console.log(chalk.blue("\n📝 Generating specto.json configuration...\n"));
 
     const { generateDefaultConfig, saveConfig } = await import(
       "./configLoader.js"
@@ -600,12 +600,12 @@ export async function init(options: { force?: boolean }): Promise<void> {
 
     console.log(chalk.green(`✓ Created ${configPath}\n`));
     console.log(chalk.yellow("📋 Next steps:\n"));
-    console.log(chalk.white("1. Set your LEYNAI_API_KEY environment variable"));
-    console.log(chalk.white("2. Update the project ID in leynai.json"));
+    console.log(chalk.white("1. Set your SPECTO_API_KEY environment variable"));
+    console.log(chalk.white("2. Update the project ID in specto.json"));
     console.log(chalk.white("3. Configure your environments and tests"));
-    console.log(chalk.white("4. Run: leynai test\n"));
+    console.log(chalk.white("4. Run: specto test\n"));
 
-    console.log(chalk.gray("📚 Documentation: https://docs.leynai.com/cli\n"));
+    console.log(chalk.gray("📚 Documentation: https://docs.specto.com/cli\n"));
   } catch (error: any) {
     console.error(chalk.red("✗ Failed to initialize:"), error.message);
     process.exit(1);
@@ -613,11 +613,11 @@ export async function init(options: { force?: boolean }): Promise<void> {
 }
 
 /**
- * Validate command - Validate leynai.json configuration
+ * Validate command - Validate specto.json configuration
  */
 export async function validate(options: { config?: string }): Promise<void> {
   try {
-    const configPath = options.config || "leynai.json";
+    const configPath = options.config || "specto.json";
     console.log(chalk.blue(`\n🔍 Validating ${configPath}...\n`));
 
     const { loadConfig, validateConfig } = await import("./configLoader.js");
@@ -730,7 +730,7 @@ export async function analyze(options: AnalyzeOptions): Promise<void> {
     // Check authentication
     if (!isAuthenticated()) {
       throw new Error(
-        'Not authenticated. Please run "leynai-agent login" first'
+        'Not authenticated. Please run "specto-agent login" first'
       );
     }
 
@@ -742,7 +742,7 @@ export async function analyze(options: AnalyzeOptions): Promise<void> {
     console.log(
       chalk.cyan("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
     );
-    console.log(chalk.bold("LeynAI Project Analysis\n"));
+    console.log(chalk.bold("Specto Project Analysis\n"));
     console.log(chalk.gray(`Project: ${projectPath}`));
     console.log(chalk.gray(`Threshold: ${threshold}`));
     console.log();
@@ -820,10 +820,10 @@ export async function analyze(options: AnalyzeOptions): Promise<void> {
       await generateTestsForFunctions(importantFunctions, projectPath);
 
       console.log(chalk.green.bold("\n✅ All tests generated!"));
-      console.log(chalk.gray("\n💾 Test IDs saved to leynai.json"));
+      console.log(chalk.gray("\n💾 Test IDs saved to specto.json"));
       console.log(
         chalk.cyan("\n🚀 Run tests with: ") +
-          chalk.white("leynai-agent test --only=unit\n")
+          chalk.white("specto-agent test --only=unit\n")
       );
     } else {
       console.log(
@@ -898,7 +898,7 @@ async function generateTestsForFunctions(
     }
   }
 
-  // Sauvegarder les IDs dans leynai.json
+  // Sauvegarder les IDs dans specto.json
   if (generatedTests.length > 0) {
     await saveTestIdsToConfig(generatedTests, projectPath);
   }
@@ -946,35 +946,35 @@ function mergeTests(
 }
 
 /**
- * Save test IDs to leynai.json
+ * Save test IDs to specto.json
  */
 async function saveTestIdsToConfig(
   testIds: string[],
   projectPath: string
 ): Promise<void> {
-  const configPath = path.join(projectPath, "leynai.json");
+  const configPath = path.join(projectPath, "specto.json");
 
-  let leynaiConfig: any = {};
+  let spectoConfig: any = {};
 
   if (await fse.pathExists(configPath)) {
     const content = await fse.readFile(configPath, "utf-8");
-    leynaiConfig = JSON.parse(content);
+    spectoConfig = JSON.parse(content);
   }
 
-  if (!leynaiConfig.tests) {
-    leynaiConfig.tests = {};
+  if (!spectoConfig.tests) {
+    spectoConfig.tests = {};
   }
 
-  if (!leynaiConfig.tests.unit) {
-    leynaiConfig.tests.unit = [];
+  if (!spectoConfig.tests.unit) {
+    spectoConfig.tests.unit = [];
   }
 
   // Ajouter les nouveaux IDs (éviter les doublons)
   testIds.forEach((id) => {
-    if (!leynaiConfig.tests.unit.includes(id)) {
-      leynaiConfig.tests.unit.push(id);
+    if (!spectoConfig.tests.unit.includes(id)) {
+      spectoConfig.tests.unit.push(id);
     }
   });
 
-  await fse.writeFile(configPath, JSON.stringify(leynaiConfig, null, 2));
+  await fse.writeFile(configPath, JSON.stringify(spectoConfig, null, 2));
 }

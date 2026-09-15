@@ -25,7 +25,7 @@ async function createTempUser() {
     const user = await prisma.user.create({
       data: {
         id: "temp-user-001",
-        email: "temp@leynai.com",
+        email: "temp@specto.com",
         passwordHash: "temp-password-hash-not-used", // Mot de passe temporaire (pas utilisé en dev)
       },
     });

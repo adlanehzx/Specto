@@ -174,7 +174,7 @@ export default function Sidebar() {
             <span className="text-white font-bold text-lg">L</span>
           </div>
           <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-            LeynAI
+            Specto
           </span>
         </Link>
       </div>

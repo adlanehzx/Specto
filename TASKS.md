@@ -38,7 +38,7 @@ Ajouter nouveaux types de tests automatisés avec génération IA :
 **✅ Ce qui a été fait :**
 
 - ✅ Agent CLI avec `analyzer.ts` : Scan projet, extraction fonctions, scoring automatique
-- ✅ Commande `leynai-agent analyze` avec options --threshold, --generate, --ai
+- ✅ Commande `specto-agent analyze` avec options --threshold, --generate, --ai
 - ✅ Backend : Modèles Prisma (UnitTest, UnitTestRun, FunctionAnalysis)
 - ✅ Backend : Routes `/api/unit-tests/*` (analyze, generate, list, run, optimize)
 - ✅ Backend : `unitPrompts.ts` (8 prompts pour scoring et génération)
@@ -47,12 +47,12 @@ Ajouter nouveaux types de tests automatisés avec génération IA :
 - ✅ Frontend : Navigation et traductions EN/FR
 - ✅ CI/CD : GitHub Actions workflows (complet + unit-only)
 - ✅ CI/CD : GitLab CI pipeline
-- ✅ CI/CD : Support `leynai-agent test --only=unit`
+- ✅ CI/CD : Support `specto-agent test --only=unit`
 - ✅ Documentation : `docs/CI_CD_INTEGRATION.md`
 
 **📚 Documentation créée pour les utilisateurs :**
 
-- `examples/ci-cd/leynai-tests.yml` - Pipeline complète GitHub Actions (template)
+- `examples/ci-cd/specto-tests.yml` - Pipeline complète GitHub Actions (template)
 - `examples/ci-cd/unit-tests-only.yml` - Workflow simplifié (template)
 - `examples/ci-cd/.gitlab-ci.yml` - Pipeline GitLab (template)
 - `examples/ci-cd/README.md` - Guide des templates CI/CD
@@ -60,7 +60,7 @@ Ajouter nouveaux types de tests automatisés avec génération IA :
 - `CICD_QUICKSTART.md` - Démarrage rapide pour utilisateurs
 - `examples/USER_PROJECT_EXAMPLE.md` - Exemple complet d'intégration
 
-⚠️ **Important:** Ces templates sont pour que les **utilisateurs de LeynAI** testent **leur propre code**, pas pour déployer LeynAI lui-même.
+⚠️ **Important:** Ces templates sont pour que les **utilisateurs de Specto** testent **leur propre code**, pas pour déployer Specto lui-même.
 
 ---
 
@@ -132,7 +132,7 @@ Ajouter nouveaux types de tests automatisés avec génération IA :
 **Configuration :**
 
 - [x] ~~Mettre à jour `agent/src/configLoader.ts`~~ - ✅ Types `unit`, `smoke`, `performance`, `security` ajoutés
-- [ ] Mettre à jour `leynai.json.example` - Ajouter exemples des nouveaux types
+- [ ] Mettre à jour `specto.json.example` - Ajouter exemples des nouveaux types
 
 **Backend CLI Routes :**
 
@@ -146,16 +146,16 @@ Ajouter nouveaux types de tests automatisés avec génération IA :
 **Agent CLI :**
 
 - [x] ~~Mettre à jour `agent/src/cli.ts`~~ - ✅ Support `--only=unit/smoke/performance/security`
-- [x] ~~Mettre à jour `agent/bin/leynai-agent.js`~~ - ✅ Options CLI mises à jour
+- [x] ~~Mettre à jour `agent/bin/specto-agent.js`~~ - ✅ Options CLI mises à jour
 
 **Tests à faire :**
 
-- [ ] ✅ Tester `leynai-agent analyze` → génération → exécution → UI (Unit Tests E2E)
-- [ ] Tester `leynai-agent test --only=unit` (end-to-end avec CI/CD)
+- [ ] ✅ Tester `specto-agent analyze` → génération → exécution → UI (Unit Tests E2E)
+- [ ] Tester `specto-agent test --only=unit` (end-to-end avec CI/CD)
 - [ ] Tester création manuelle Performance Test via UI
-- [ ] Tester `leynai-agent test --only=performance` (après intégration CLI)
-- [ ] Tester `leynai-agent test --only=security` (après implémentation)
-- [ ] Tester `leynai-agent test` (tous les types combinés)
+- [ ] Tester `specto-agent test --only=performance` (après intégration CLI)
+- [ ] Tester `specto-agent test --only=security` (après implémentation)
+- [ ] Tester `specto-agent test` (tous les types combinés)
 
 ---
 
@@ -264,12 +264,12 @@ model [Type]TestRun {
 
 ---
 
-## 🔧 Configuration leynai.json étendue
+## 🔧 Configuration specto.json étendue
 
 ```json
 {
   "server": "http://localhost:4000",
-  "apiKey": "${LEYNAI_API_KEY}",
+  "apiKey": "${SPECTO_API_KEY}",
   "project": "my-project-id",
   "tests": {
     "e2e": ["test-1", "test-2"],
@@ -296,7 +296,7 @@ model [Type]TestRun {
 
 ✅ **Workflows créés :**
 
-- `.github/workflows/leynai-tests.yml` - Pipeline complète (8 jobs)
+- `.github/workflows/specto-tests.yml` - Pipeline complète (8 jobs)
 - `.github/workflows/unit-tests-only.yml` - Workflow simplifié unit tests
 - `.gitlab-ci.yml` - Pipeline GitLab CI (3 stages)
 
@@ -347,9 +347,9 @@ model [Type]TestRun {
 - [x] Frontend : Pages de visualisation (liste + détails avec 4 onglets)
 - [x] Navigation mise à jour (Sidebar + Traductions)
 - [x] CI/CD : Workflows GitHub Actions et GitLab CI créés (templates pour users)
-- [x] CI/CD : Support `leynai-agent test --only=unit`
+- [x] CI/CD : Support `specto-agent test --only=unit`
 - [x] Documentation créée (CI/CD, HOW_TESTS_ARE_EXECUTED, QUICKSTART)
-- [ ] ⏳ Test end-to-end complet : `leynai-agent analyze` → génère tests → exécute → vérifie UI
+- [ ] ⏳ Test end-to-end complet : `specto-agent analyze` → génère tests → exécute → vérifie UI
 
 **✅ Performance Tests (k6) - TERMINÉ**
 
@@ -361,7 +361,7 @@ model [Type]TestRun {
 - [x] Frontend : DashboardLayout + Navigation + Traductions
 - [x] Backend compilé ✅
 - [x] Frontend compilé ✅
-- [ ] ⏳ Intégration CLI (`leynai-agent test --only=performance`)
+- [ ] ⏳ Intégration CLI (`specto-agent test --only=performance`)
 - [ ] ⏳ Test manuel via UI
 
 **⏳ Security Tests (OWASP) - À FAIRE**
@@ -400,8 +400,8 @@ model [Type]TestRun {
 **Intégrable en CI/CD avec une seule commande :**
 
 ```bash
-leynai-agent test  # Tous les types
-leynai-agent test --only=unit  # Seulement unit tests
+specto-agent test  # Tous les types
+specto-agent test --only=unit  # Seulement unit tests
 ```
 
 ---
@@ -442,17 +442,17 @@ leynai-agent test --only=unit  # Seulement unit tests
 
 ```bash
 # Analyser le projet (affiche fonctions critiques)
-leynai-agent analyze
+specto-agent analyze
 
 # Analyser et générer automatiquement les tests
-leynai-agent analyze --generate
+specto-agent analyze --generate
 
 # Changer le seuil de criticité (défaut: 70)
-leynai-agent analyze --threshold 80
+specto-agent analyze --threshold 80
 
 # Exécuter les tests unitaires
-leynai-agent test --only=unit
+specto-agent test --only=unit
 
 # Pipeline CI/CD complet dans GitHub Actions
-# (voir .github/workflows/leynai-tests.yml)
+# (voir .github/workflows/specto-tests.yml)
 ```

@@ -4,7 +4,7 @@ export default function DesktopAppGuidePage() {
       <h1>🖥️ Desktop Application Guide</h1>
 
       <p className="lead">
-        The LeynAI Desktop App provides a user-friendly graphical interface for
+        The Specto Desktop App provides a user-friendly graphical interface for
         managing tunnels and tests, without requiring command-line knowledge.
       </p>
 
@@ -182,7 +182,7 @@ export default function DesktopAppGuidePage() {
                   <div className="text-3xl">🚀</div>
                   <div>
                     <h3 className="text-white font-bold text-lg">
-                      LeynAI Agent
+                      Specto Agent
                     </h3>
                     <p className="text-indigo-200 text-sm">Running</p>
                   </div>
@@ -302,22 +302,22 @@ export default function DesktopAppGuidePage() {
         <h3>Windows Installation</h3>
         <ol>
           <li>
-            Download <code>LeynAI-Agent-Setup-1.0.0.exe</code>
+            Download <code>Specto-Agent-Setup-1.0.0.exe</code>
           </li>
           <li>Double-click to run the installer</li>
           <li>Follow the installation wizard</li>
-          <li>Launch LeynAI Agent from Start Menu</li>
+          <li>Launch Specto Agent from Start Menu</li>
           <li>Login with your credentials</li>
         </ol>
 
         <h3>macOS Installation</h3>
         <ol>
           <li>
-            Download <code>LeynAI-Agent-1.0.0.dmg</code>
+            Download <code>Specto-Agent-1.0.0.dmg</code>
           </li>
           <li>Open the DMG file</li>
-          <li>Drag LeynAI Agent to Applications folder</li>
-          <li>Open LeynAI Agent from Applications</li>
+          <li>Drag Specto Agent to Applications folder</li>
+          <li>Open Specto Agent from Applications</li>
           <li>Allow app in System Preferences (if prompted)</li>
           <li>Login with your credentials</li>
         </ol>
@@ -328,13 +328,13 @@ export default function DesktopAppGuidePage() {
         <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
           <pre className="text-sm">
             <code>{`# Download
-wget https://releases.leynai.com/LeynAI-Agent-1.0.0.AppImage
+wget https://releases.specto.com/Specto-Agent-1.0.0.AppImage
 
 # Make executable
-chmod +x LeynAI-Agent-1.0.0.AppImage
+chmod +x Specto-Agent-1.0.0.AppImage
 
 # Run
-./LeynAI-Agent-1.0.0.AppImage`}</code>
+./Specto-Agent-1.0.0.AppImage`}</code>
           </pre>
         </div>
 
@@ -342,13 +342,13 @@ chmod +x LeynAI-Agent-1.0.0.AppImage
         <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
           <pre className="text-sm">
             <code>{`# Download
-wget https://releases.leynai.com/leynai-agent_1.0.0_amd64.deb
+wget https://releases.specto.com/specto-agent_1.0.0_amd64.deb
 
 # Install
-sudo dpkg -i leynai-agent_1.0.0_amd64.deb
+sudo dpkg -i specto-agent_1.0.0_amd64.deb
 
 # Run
-leynai-agent`}</code>
+specto-agent`}</code>
           </pre>
         </div>
 
@@ -356,13 +356,13 @@ leynai-agent`}</code>
         <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
           <pre className="text-sm">
             <code>{`# Download
-wget https://releases.leynai.com/leynai-agent-1.0.0.x86_64.rpm
+wget https://releases.specto.com/specto-agent-1.0.0.x86_64.rpm
 
 # Install
-sudo rpm -i leynai-agent-1.0.0.x86_64.rpm
+sudo rpm -i specto-agent-1.0.0.x86_64.rpm
 
 # Run
-leynai-agent`}</code>
+specto-agent`}</code>
           </pre>
         </div>
       </section>
@@ -445,7 +445,7 @@ leynai-agent`}</code>
           <h2 className="text-2xl font-bold mb-4">Can't Wait?</h2>
           <p className="text-blue-100 mb-6">
             The CLI is available now and provides all the same functionality! If
-            you're comfortable with the terminal, you can start using LeynAI
+            you're comfortable with the terminal, you can start using Specto
             today.
           </p>
           <a

@@ -222,7 +222,7 @@ async function example6_errorHandling() {
 async function runAllExamples() {
   console.log(`
 ╔═══════════════════════════════════════════════════════════════╗
-║          EXEMPLES CLOUDFLARE TUNNEL - LEYNAI                  ║
+║          EXEMPLES CLOUDFLARE TUNNEL - SPECTO                  ║
 ╚═══════════════════════════════════════════════════════════════╝
   `);
 
