@@ -5,6 +5,7 @@
 
 import express, { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import OpenAI from "openai";
 import { runTestFromCode } from "../runner/playrunner";
 import { executeApiTestWithRetry } from "../runner/apirunner";
 import { addTestToQueue } from "../queue";
@@ -918,6 +919,7 @@ Description: ${unitDesc.description}
 
 Génère un test unitaire complet.`;
 
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
