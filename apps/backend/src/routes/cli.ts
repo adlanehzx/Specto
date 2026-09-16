@@ -893,11 +893,12 @@ async function executeUnitTestFromDescription(
     const unitTest = await prisma.unitTest.create({
       data: {
         name: unitDesc.name,
-        filePath: unitDesc.filePath,
+        sourceFile: unitDesc.filePath,
         functionName: unitDesc.functionName,
-        code: "", // Will be filled by AI
+        sourceCode: unitDesc.description || "",
+        generatedCode: "", // Will be filled by AI
         projectId,
-        createdBy: userId,
+        userId,
       },
     });
 
@@ -940,7 +941,7 @@ Génère un test unitaire complet.`;
     // Update unit test with generated code
     await prisma.unitTest.update({
       where: { id: unitTest.id },
-      data: { code: generatedCode },
+      data: { generatedCode },
     });
 
     // 3. Execute the unit test
@@ -954,10 +955,10 @@ Génère un test unitaire complet.`;
     const unitRun = await prisma.unitTestRun.create({
       data: {
         unitTestId: unitTest.id,
-        status: result.status === "passed" ? "success" : "failed",
+        status: result.status === "passed" ? "passed" : "failed",
         duration: result.duration,
         error: result.error || null,
-        runId,
+        completedAt: new Date(),
       },
     });
 
