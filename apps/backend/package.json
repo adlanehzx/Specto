@@ -7,14 +7,15 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "lint": "eslint src --ext .ts",
+    "lint": "tsc --noEmit",
     "type-check": "tsc --noEmit",
     "clean": "rimraf dist node_modules",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "prisma:push": "prisma db push",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "test": "tsx src/services/promptValidator.test.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

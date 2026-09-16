@@ -2,7 +2,7 @@
   "name": "specto-mvp",
   "version": "1.0.0",
   "private": true,
-  "description": "Specto MVP - Monorepo with Next.js frontend and Express backend",
+  "description": "Specto - AI-powered test automation platform (Next.js frontend + Express backend)",
   "workspaces": [
     "apps/*"
   ],
@@ -19,7 +19,8 @@
     "start:backend": "npm run start --workspace=apps/backend",
     "clean": "npm run clean --workspaces && rimraf node_modules",
     "lint": "npm run lint --workspaces",
-    "type-check": "npm run type-check --workspaces"
+    "type-check": "npm run type-check --workspaces",
+    "test": "npm run test --workspace=apps/backend"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
