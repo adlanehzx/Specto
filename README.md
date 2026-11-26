@@ -2,6 +2,7 @@
 
 **AI-driven test automation platform.** Describe a scenario in plain language: Specto generates the test, runs it through a queue, stores screenshots and metrics, and suggests an automatic fix when it fails.
 
+![CI](https://github.com/adlanehzx/specto/actions/workflows/ci.yml/badge.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6)
 ![Next.js](https://img.shields.io/badge/Next.js-14-black)
 ![Express](https://img.shields.io/badge/Express-4-lightgrey)
@@ -108,7 +109,8 @@ specto/
 | `npm run build`      | Production build of both apps          |
 | `npm run type-check` | TypeScript check                       |
 | `npm run lint`       | Lint                                   |
-| `npm test`           | Backend tests                          |
+| `npm test`           | Backend unit tests (Vitest)            |
+| `npm run test:coverage --workspace=apps/backend` | Backend tests with coverage |
 
 ## License
 

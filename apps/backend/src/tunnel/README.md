@@ -218,12 +218,9 @@ POST /api/tests {
 3. Use `keepTunnelOpen: false` by default
 4. Monitor active tunnels
 
-## 📖 Documentation
+## 📖 Examples
 
-- **Full guide:** `docs/CLOUDFLARE_TUNNEL.md`
-- **Quick start:** `docs/TUNNEL_QUICKSTART.md`
-- **Examples:** `src/examples/tunnel-examples.ts`
-- **Summary:** `docs/TUNNEL_INTEGRATION_SUMMARY.md`
+Runnable examples are in `src/examples/tunnel-examples.ts`.
 
 ## 🧪 Tests
 
@@ -245,14 +242,3 @@ npx ts-node src/examples/tunnel-examples.ts
 ### "Port already in use"
 
 → Close the tunnel: `DELETE /api/tunnels/PORT`
-
-## 📝 Changelog
-
-### v1.0.0 (2025-10-31)
-
-- ✅ Initial module
-- ✅ Automatic local URL detection
-- ✅ Tunnel creation/closing
-- ✅ testGenerator + queue integration
-- ✅ REST API routes
-- ✅ Full documentation

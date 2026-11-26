@@ -277,14 +277,6 @@ agent/
 
 ---
 
-## 📚 Full documentation
-
-- **CI/CD Guide**: `../docs/CLI_CI_CD_GUIDE.md`
-- **API Testing**: `../docs/API_TESTING_COMPLETE.md`
-- **Quick Start**: `../docs/API_TESTING_QUICK_START.md`
-
----
-
 ## 🔄 How do tunnels work?
 
 When you run `specto-agent start`:
