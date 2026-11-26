@@ -1,106 +1,146 @@
-/**
- * Tests pour le module de validation de prompts
- *
- * Exécuter : npx tsx src/services/promptValidator.test.ts
- */
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  validatePrompt,
-  estimatePromptComplexity,
   analyzePrompt,
+  estimatePromptComplexity,
   improvePrompt,
+  validateAndImprovePrompt,
+  validatePrompt,
 } from "./promptValidator";
 
-async function runTests() {
-  console.log("🧪 Tests du module PromptValidator\n");
+const GOOD_PROMPT =
+  "Clique sur le bouton #login-btn et vérifie que le formulaire de connexion affiche une erreur";
 
-  // Test 1 : Prompt vide
-  console.log("1️⃣ Test : Prompt vide");
-  const test1 = await validatePrompt("");
-  console.log(`   Score: ${test1.score}/100`);
-  console.log(`   Valid: ${test1.valid}`);
-  console.log(`   Raison: ${test1.reason}\n`);
-  console.assert(!test1.valid, "❌ Devrait être invalide");
-  console.assert(test1.score === 0, "❌ Score devrait être 0");
+beforeEach(() => {
+  vi.stubEnv("OPENAI_API_KEY", "");
+  vi.spyOn(console, "warn").mockImplementation(() => {});
+  vi.spyOn(console, "log").mockImplementation(() => {});
+});
 
-  // Test 2 : Prompt trop court
-  console.log("2️⃣ Test : Prompt trop court");
-  const test2 = await validatePrompt("teste le site");
-  console.log(`   Score: ${test2.score}/100`);
-  console.log(`   Valid: ${test2.valid}`);
-  console.log(`   Raison: ${test2.reason}`);
-  console.log(`   Suggestion: ${test2.suggestion}\n`);
-  console.assert(!test2.valid, "❌ Devrait être invalide");
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.restoreAllMocks();
+});
 
-  // Test 3 : Prompt vague
-  console.log("3️⃣ Test : Prompt vague");
-  const test3 = await validatePrompt("vérifie que ça marche sur le site");
-  console.log(`   Score: ${test3.score}/100`);
-  console.log(`   Valid: ${test3.valid}`);
-  console.log(`   Raison: ${test3.reason}\n`);
+describe("validatePrompt", () => {
+  it("rejects an empty prompt with a score of 0", async () => {
+    const result = await validatePrompt("");
+    expect(result.valid).toBe(false);
+    expect(result.score).toBe(0);
+  });
 
-  // Test 4 : Prompt correct
-  console.log("4️⃣ Test : Prompt correct");
-  const test4 = await validatePrompt(
-    "Vérifie que la connexion échoue avec un mauvais mot de passe"
-  );
-  console.log(`   Score: ${test4.score}/100`);
-  console.log(`   Valid: ${test4.valid}`);
-  console.log(`   Raison: ${test4.reason}`);
-  console.log(`   Complexité: ${test4.complexity}/5\n`);
-  console.assert(test4.valid, "❌ Devrait être valide");
-  console.assert(test4.score >= 60, "❌ Score devrait être >= 60");
+  it("rejects a non-string prompt", async () => {
+    const result = await validatePrompt(undefined as unknown as string);
+    expect(result.valid).toBe(false);
+    expect(result.score).toBe(0);
+  });
 
-  // Test 5 : Prompt excellent avec sélecteurs
-  console.log("5️⃣ Test : Prompt avec sélecteurs CSS");
-  const test5 = await validatePrompt(
-    'Clique sur le bouton #submit-btn, vérifie que l\'input[name="email"] est vide et que le formulaire .login-form affiche une erreur'
-  );
-  console.log(`   Score: ${test5.score}/100`);
-  console.log(`   Valid: ${test5.valid}`);
-  console.log(`   Raison: ${test5.reason}`);
-  console.log(`   Complexité: ${test5.complexity}/5\n`);
-  console.assert(test5.valid, "❌ Devrait être valide");
-  console.assert(test5.score >= 80, "❌ Score devrait être >= 80");
+  it("rejects a prompt of fewer than 5 words and explains why", async () => {
+    const result = await validatePrompt("teste le site");
+    expect(result.valid).toBe(false);
+    expect(result.score).toBe(20);
+    expect(result.reason).toMatch(/trop court/);
+    expect(result.suggestion).toBeTruthy();
+  });
 
-  // Test 6 : Complexité
-  console.log("6️⃣ Test : Estimation de complexité");
-  const complexity1 = estimatePromptComplexity("Clique sur le bouton login");
-  const complexity2 = estimatePromptComplexity(
-    "Remplit le formulaire, clique sur submit, vérifie la redirection, puis teste le logout"
-  );
-  console.log(`   Simple (1 action): ${complexity1}/5`);
-  console.log(`   Complexe (4+ actions): ${complexity2}/5\n`);
-  console.assert(complexity1 <= 2, "❌ Devrait être simple");
-  console.assert(complexity2 >= 3, "❌ Devrait être complexe");
+  it("rejects a prompt without any action verb", async () => {
+    const result = await validatePrompt("the quick brown fox jumps over the lazy dog today");
+    expect(result.valid).toBe(false);
+    expect(result.reason).toMatch(/verbe d'action/);
+  });
 
-  // Test 7 : Analyse détaillée
-  console.log("7️⃣ Test : Analyse détaillée du prompt");
+  it("rejects a vague prompt below the clarity threshold", async () => {
+    const result = await validatePrompt("vérifie que ça marche sur le site");
+    expect(result.valid).toBe(false);
+    expect(result.score).toBeLessThan(60);
+    expect(result.suggestion).toMatch(/Améliorez votre prompt/);
+  });
+
+  it("accepts a precise prompt with actions, elements and a selector", async () => {
+    const result = await validatePrompt(GOOD_PROMPT);
+    expect(result.valid).toBe(true);
+    expect(result.score).toBeGreaterThanOrEqual(75);
+  });
+
+  it("keeps the score within 0..100", async () => {
+    const long = `${GOOD_PROMPT} `.repeat(30);
+    const result = await validatePrompt(long);
+    expect(result.score).toBeGreaterThanOrEqual(0);
+    expect(result.score).toBeLessThanOrEqual(100);
+  });
+
+  it("scores a precise prompt higher than a vague one", async () => {
+    const good = await validatePrompt(GOOD_PROMPT);
+    const vague = await validatePrompt("vérifie que ça marche sur le site");
+    expect(good.score).toBeGreaterThan(vague.score);
+  });
+});
+
+describe("estimatePromptComplexity", () => {
+  it("returns 0 for an empty prompt", () => {
+    expect(estimatePromptComplexity("")).toBe(0);
+  });
+
+  it("always stays within 0..5", () => {
+    expect(estimatePromptComplexity(GOOD_PROMPT)).toBeLessThanOrEqual(5);
+    expect(estimatePromptComplexity("x".repeat(500))).toBeGreaterThanOrEqual(0);
+  });
+
+  it("rates a multi-step prompt above a single action", () => {
+    const single = estimatePromptComplexity("click login");
+    const multi = estimatePromptComplexity(
+      "Remplit le formulaire, clique submit, vérifie la redirection puis le menu"
+    );
+    expect(multi).toBeGreaterThan(single);
+  });
+});
+
+describe("analyzePrompt", () => {
   const analysis = analyzePrompt(
-    'Clique sur input[type="submit"], vérifie le bouton et navigue vers #dashboard'
+    "Clique sur le bouton #login-btn et vérifie le formulaire"
   );
-  console.log(`   Mots: ${analysis.wordCount}`);
-  console.log(`   Verbes: ${analysis.verbs.join(", ")}`);
-  console.log(`   Éléments UI: ${analysis.uiElements.join(", ")}`);
-  console.log(`   Sélecteurs: ${analysis.selectors.join(", ")}`);
-  console.log(`   Complexité: ${analysis.complexity}/5\n`);
 
-  // Test 8 : Amélioration avec OpenAI (si API key disponible)
-  if (process.env.OPENAI_API_KEY) {
-    console.log("8️⃣ Test : Amélioration avec OpenAI");
-    const improved = await improvePrompt("teste le login");
-    console.log(`   Original: "teste le login"`);
-    console.log(`   Amélioré: "${improved}"\n`);
+  it("counts the words", () => {
+    expect(analysis.wordCount).toBe(9);
+  });
 
-    const validation = await validatePrompt(improved);
-    console.log(`   Score amélioré: ${validation.score}/100`);
-    console.log(`   Valid: ${validation.valid}\n`);
-  } else {
-    console.log("⚠️  OPENAI_API_KEY non défini, test d'amélioration sauté\n");
-  }
+  it("detects the action verbs", () => {
+    expect(analysis.verbs).toEqual(expect.arrayContaining(["clique", "vérifie"]));
+  });
 
-  console.log("✅ Tous les tests sont terminés !");
-}
+  it("detects UI elements", () => {
+    expect(analysis.uiElements).toEqual(
+      expect.arrayContaining(["bouton", "formulaire"])
+    );
+  });
 
-// Exécuter les tests
-runTests().catch(console.error);
+  it("extracts CSS selectors", () => {
+    expect(analysis.selectors).toContain("#login-btn");
+  });
+
+  it("includes the complexity estimate", () => {
+    expect(analysis.complexity).toBe(
+      estimatePromptComplexity(
+        "Clique sur le bouton #login-btn et vérifie le formulaire"
+      )
+    );
+  });
+});
+
+describe("improvePrompt without an API key", () => {
+  it("returns the original prompt untouched", async () => {
+    await expect(improvePrompt("teste le login")).resolves.toBe("teste le login");
+  });
+});
+
+describe("validateAndImprovePrompt without an API key", () => {
+  it("returns the plain validation result for an invalid prompt", async () => {
+    const result = await validateAndImprovePrompt("teste");
+    expect(result.valid).toBe(false);
+    expect(result.score).toBe(20);
+  });
+
+  it("returns a valid result for a good prompt", async () => {
+    const result = await validateAndImprovePrompt(GOOD_PROMPT);
+    expect(result.valid).toBe(true);
+  });
+});

@@ -5,18 +5,92 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 20
+
 jobs:
-  check:
+  backend:
+    name: Backend (type-check, tests, build)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
-      - run: npx prisma generate
+      - name: Generate Prisma client
+        run: npx prisma generate
         working-directory: apps/backend
-      - run: npm run type-check
-      - run: npm run lint --workspace=apps/frontend
-      - run: npm test
+      - name: Type-check
+        run: npm run type-check --workspace=apps/backend
+      - name: Unit tests with coverage
+        run: npm run test:coverage --workspace=apps/backend
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: apps/backend/coverage/lcov.info
+          if-no-files-found: error
+      - name: Production build
+        run: npm run build --workspace=apps/backend
+
+  frontend:
+    name: Frontend (lint, type-check, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Lint
+        run: npm run lint --workspace=apps/frontend
+      - name: Type-check
+        run: npm run type-check --workspace=apps/frontend
+      - name: Production build
+        run: npm run build --workspace=apps/frontend
+
+  infra:
+    name: Infra (Prisma schema, Docker Compose)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Validate the Prisma schema
+        run: npx prisma validate
+        working-directory: apps/backend
+        env:
+          DATABASE_URL: postgresql://user:password@localhost:5432/specto
+      - name: Validate the Docker Compose file
+        run: docker compose --env-file .env.example config --quiet
+
+  audit:
+    name: Dependency audit (informational)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Reports known vulnerabilities in production dependencies without failing
+    # the build. Make it blocking once the open advisories are resolved.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm audit --omit=dev --audit-level=high
