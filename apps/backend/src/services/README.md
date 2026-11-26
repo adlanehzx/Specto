@@ -1,71 +1,71 @@
 # 📁 Services - Architecture
 
-Ce dossier contient les services métier de l'application backend.
+This folder contains the application backend's business services.
 
 ## Structure
 
 ```
 services/
-├── llm.ts              # Service de génération de code avec LLM
-└── testGenerator.ts    # Orchestrateur de génération de tests
+├── llm.ts              # Code generation service using an LLM
+└── testGenerator.ts    # Test generation orchestrator
 ```
 
 ---
 
-## 📄 Fichiers
+## 📄 Files
 
-### `llm.ts` - Service LLM
+### `llm.ts` - LLM service
 
-**Responsabilité :** Génération de code de test Playwright TypeScript
+**Responsibility:** Generating Playwright TypeScript test code
 
-**Fonctions principales :**
+**Main functions:**
 
-- `generateTestCode(prompt, url)` - Génère du code de test
-- `validateGeneratedCode(code)` - Valide le code généré
-- `extractCodeMetadata(code)` - Extrait les métadonnées
-- `estimateTestDuration(code)` - Estime la durée d'exécution
+- `generateTestCode(prompt, url)` - Generates test code
+- `validateGeneratedCode(code)` - Validates the generated code
+- `extractCodeMetadata(code)` - Extracts metadata
+- `estimateTestDuration(code)` - Estimates execution time
 
-**État actuel :** Template basique (stub)
+**Current state:** Basic template (stub)
 
-**Future :** Intégration OpenAI GPT-4, Mistral, Claude (code commenté prêt)
+**Future:** OpenAI GPT-4, Mistral, Claude integration (commented code ready)
 
-**Configuration :**
+**Configuration:**
 
 ```env
-OPENAI_API_KEY=sk-...    # Optionnel
-MISTRAL_API_KEY=...      # Optionnel
+OPENAI_API_KEY=sk-...    # Optional
+MISTRAL_API_KEY=...      # Optional
 ```
 
-**Utilisation :**
+**Usage:**
 
 ```typescript
 import { generateTestCode } from "./services/llm";
 
 const code = await generateTestCode(
-  "Cliquer sur le bouton de connexion",
+  "Click the login button",
   "https://example.com"
 );
 ```
 
 ---
 
-### `testGenerator.ts` - Orchestrateur
+### `testGenerator.ts` - Orchestrator
 
-**Responsabilité :** Interface de haut niveau pour la génération de tests
+**Responsibility:** High-level interface for test generation
 
-**Rôle :**
+**Role:**
 
-- Orchestre les appels au service LLM
-- Gère la validation du code généré
-- Retourne les résultats structurés
+- Orchestrates calls to the LLM service
+- Handles validation of the generated code
+- Returns structured results
 
-**Utilisation :**
+**Usage:**
 
 ```typescript
 import { generateTestCode } from "./services/testGenerator";
 
 const result = await generateTestCode({
-  prompt: "Tester le formulaire de contact",
+  prompt: "Test the contact form",
   url: "https://example.com/contact",
 });
 
@@ -75,7 +75,7 @@ console.log(result.estimatedDuration);
 
 ---
 
-## 🔄 Flux de données
+## 🔄 Data flow
 
 ```
 routes.ts (POST /api/tests)
@@ -84,51 +84,51 @@ testGenerator.generateTestCode({ prompt, url })
     ↓
 llm.generateTestCode(prompt, url)
     ↓
-[Template actuel OU OpenAI/Mistral futur]
+[Current template OR future OpenAI/Mistral]
     ↓
 llm.validateGeneratedCode(code)
     ↓
 llm.estimateTestDuration(code)
     ↓
-Retour: { code, framework, estimatedDuration }
+Return: { code, framework, estimatedDuration }
 ```
 
 ---
 
-## 🚀 Évolution future
+## 🚀 Future evolution
 
-### Phase 1 : Template (Actuel) ✅
+### Phase 1: Template (Current) ✅
 
-- Code Playwright basique
-- Prompt et URL incorporés
-- Validation simple
+- Basic Playwright code
+- Prompt and URL embedded
+- Simple validation
 
-### Phase 2 : LLM Simple (Prochain)
+### Phase 2: Simple LLM (Next)
 
-- Intégration OpenAI GPT-3.5
-- Prompts système optimisés
-- Fallback sur template
+- OpenAI GPT-3.5 integration
+- Optimized system prompts
+- Fallback to template
 
-### Phase 3 : LLM Avancé
+### Phase 3: Advanced LLM
 
 - Few-shot learning
-- Analyse de page web (Puppeteer)
-- Sélecteurs intelligents
-- Tests multi-étapes
+- Web page analysis (Puppeteer)
+- Smart selectors
+- Multi-step tests
 
-### Phase 4 : Multi-LLM
+### Phase 4: Multi-LLM
 
-- Support GPT-4, Mistral, Claude
-- Sélection automatique selon complexité
-- A/B testing qualité
+- GPT-4, Mistral, Claude support
+- Automatic selection based on complexity
+- Quality A/B testing
 
 ---
 
-## 🛠️ Ajout d'un nouveau service
+## 🛠️ Adding a new service
 
-Pour ajouter un service dans ce dossier :
+To add a service to this folder:
 
-1. **Créer le fichier**
+1. **Create the file**
 
 ```typescript
 // services/myService.ts
@@ -137,7 +137,7 @@ export async function myFunction() {
 }
 ```
 
-2. **Ajouter les types**
+2. **Add the types**
 
 ```typescript
 export interface MyServiceResult {
@@ -145,18 +145,18 @@ export interface MyServiceResult {
 }
 ```
 
-3. **Documenter**
+3. **Document it**
 
 ```typescript
 /**
- * Description de la fonction
+ * Function description
  *
  * @param param1 - Description
- * @returns Description du retour
+ * @returns Description of the return value
  */
 ```
 
-4. **Tester**
+4. **Test it**
 
 ```typescript
 // tests/services/myService.test.ts
@@ -168,7 +168,7 @@ test("myFunction works", async () => {
 });
 ```
 
-5. **Utiliser dans les routes**
+5. **Use it in the routes**
 
 ```typescript
 // routes.ts
@@ -182,30 +182,30 @@ router.post("/endpoint", async (req, res) => {
 
 ---
 
-## 📚 Documentation associée
+## 📚 Related documentation
 
-- [LLM_INTEGRATION.md](../LLM_INTEGRATION.md) - Guide d'intégration LLM complet
-- [API_TESTS.md](../API_TESTS.md) - Documentation de l'API
+- [LLM_INTEGRATION.md](../LLM_INTEGRATION.md) - Full LLM integration guide
+- [API_TESTS.md](../API_TESTS.md) - API documentation
 
 ---
 
 ## ⚙️ Configuration
 
-Les services utilisent les variables d'environnement suivantes :
+The services use the following environment variables:
 
-| Variable            | Requis | Description                     |
-| ------------------- | ------ | ------------------------------- |
-| `OPENAI_API_KEY`    | Non    | Clé API OpenAI (pour GPT-4)     |
-| `MISTRAL_API_KEY`   | Non    | Clé API Mistral                 |
-| `ANTHROPIC_API_KEY` | Non    | Clé API Anthropic (pour Claude) |
+| Variable            | Required | Description                     |
+| ------------------- | -------- | ------------------------------- |
+| `OPENAI_API_KEY`    | No       | OpenAI API key (for GPT-4)      |
+| `MISTRAL_API_KEY`   | No       | Mistral API key                 |
+| `ANTHROPIC_API_KEY` | No       | Anthropic API key (for Claude)  |
 
-**Note :** Si aucune clé n'est fournie, le système utilise le template basique.
+**Note:** If no key is provided, the system uses the basic template.
 
 ---
 
 ## 🧪 Tests
 
-Pour tester un service individuellement :
+To test a service individually:
 
 ```bash
 npx tsx -e "
@@ -219,17 +219,17 @@ console.log(code);
 
 ## 🐛 Debugging
 
-### Activer les logs détaillés
+### Enable detailed logs
 
-Dans `llm.ts`, ajoutez :
+In `llm.ts`, add:
 
 ```typescript
 console.log("🔍 Prompt:", prompt);
 console.log("🔍 URL:", url);
-console.log("🔍 Code généré:", code);
+console.log("🔍 Generated code:", code);
 ```
 
-### Vérifier la validation
+### Check the validation
 
 ```typescript
 import { validateGeneratedCode } from "./services/llm";
@@ -242,35 +242,35 @@ console.log("Valid:", isValid);
 
 ## 💡 Best Practices
 
-1. **Toujours valider** le code généré avant de le retourner
-2. **Gérer les erreurs** avec try/catch et fallback
-3. **Logger** les événements importants
-4. **Documenter** avec JSDoc
-5. **Typer** avec TypeScript strict
-6. **Tester** avec des exemples variés
+1. **Always validate** the generated code before returning it
+2. **Handle errors** with try/catch and a fallback
+3. **Log** important events
+4. **Document** with JSDoc
+5. **Type** with strict TypeScript
+6. **Test** with varied examples
 
 ---
 
-## 📊 Métriques
+## 📊 Metrics
 
-À monitorer dans les services :
+To monitor in the services:
 
-- Temps de génération du code
-- Taux de validation réussie
-- Nombre de tokens utilisés (si LLM)
-- Coût par requête (si LLM payant)
-- Taux d'erreur
+- Code generation time
+- Validation success rate
+- Number of tokens used (if LLM)
+- Cost per request (if paid LLM)
+- Error rate
 
-Exemple :
+Example:
 
 ```typescript
 const startTime = Date.now();
 const code = await generateTestCode(prompt, url);
 const duration = Date.now() - startTime;
 
-console.log(`⏱️ Génération en ${duration}ms`);
+console.log(`⏱️ Generated in ${duration}ms`);
 ```
 
 ---
 
-Cette architecture de services permet une **séparation claire des responsabilités** et facilite les **tests unitaires** et l'**évolution future** vers des LLM plus sophistiqués.
+This services architecture provides a **clear separation of responsibilities** and makes **unit testing** and **future evolution** towards more sophisticated LLMs easier.

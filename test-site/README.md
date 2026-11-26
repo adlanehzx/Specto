@@ -1,4 +1,4 @@
-# Test App - Application Minimale pour Specto
+# Test App - Minimal Application for Specto
 
 ## 🚀 Installation
 
@@ -7,68 +7,68 @@ cd test-site
 npm install
 ```
 
-## 🎯 Démarrer l'app
+## 🎯 Start the app
 
 ```bash
 npm start
-# Ouvre http://localhost:3001
+# Opens http://localhost:3001
 ```
 
-## 🧪 Tester avec Specto
+## 🧪 Test with Specto
 
-### Étape 1 : Login
+### Step 1: Log in
 
 ```bash
 specto-agent login
-# Entre ton email et password
+# Enter your email and password
 ```
 
-### Étape 2 : Initialiser
+### Step 2: Initialize
 
 ```bash
 specto-agent init
-# Entre le slug du projet (depuis le dashboard)
-# Entre la clé API (créée dans Settings → API Keys)
+# Enter the project slug (from the dashboard)
+# Enter the API key (created in Settings → API Keys)
 ```
 
-Cela va créer :
+This will create:
 
-- `specto.json` avec ta config
-- `playwright.config.ts` automatiquement
+- `specto.json` with your configuration
+- `playwright.config.ts` automatically
 
-### Étape 3 : Démarrer l'agent
+### Step 3: Start the agent
 
 ```bash
 specto-agent start
-# L'agent crée un tunnel et écoute les changements
+# The agent creates a tunnel and listens for changes
 ```
 
-### Étape 4 : Lancer les tests
+### Step 4: Run the tests
 
 ```bash
-# Dans un autre terminal
+# In another terminal
 specto-agent test
 ```
 
-### Étape 5 : Voir les résultats
+### Step 5: See the results
 
-Ouvre le dashboard Specto : `http://localhost:3000`
-Les résultats des tests apparaissent automatiquement !
+Open the Specto dashboard: `http://localhost:3000`
+Test results appear automatically!
 
 ## 📦 Structure
 
 ```
 test-site/
-├── server.js              # Serveur Express minimal
+├── server.js              # Minimal Express server
 ├── tests/
-│   └── app.spec.js        # 3 tests Playwright simples
+│   └── app.spec.js        # 3 simple Playwright tests
 ├── package.json
-├── specto.json           # Créé par specto-agent init
-└── playwright.config.ts  # Créé par specto-agent init
+├── specto.json           # Created by specto-agent init
+└── playwright.config.ts  # Created by specto-agent init
 ```
 
-## ✨ Fonctionnalités
+## ✨ Features
 
-- 3 tests simples
-- Aucune dépendance de test (Playwright sera installé par Specto)
-- App ultra-légère (Express seulement)
+- 3 simple tests
+- No test dependency (Playwright will be installed by Specto)
+- Ultra-light app (Express only)

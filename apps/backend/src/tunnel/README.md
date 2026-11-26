@@ -1,14 +1,14 @@
 # Cloudflare Tunnel Module
 
-Module de gestion des tunnels Cloudflare pour exposer des serveurs locaux via des URLs publiques temporaires.
+Cloudflare tunnel management module to expose local servers through temporary public URLs.
 
-## 🎯 Objectif
+## 🎯 Purpose
 
-Permettre à Specto de tester des sites web locaux (`http://localhost:*`) en créant automatiquement des tunnels Cloudflare publics sans configuration.
+Let Specto test local websites (`http://localhost:*`) by automatically creating public Cloudflare tunnels with no configuration.
 
 ## 📦 Installation
 
-### Prérequis : cloudflared
+### Prerequisite: cloudflared
 
 ```bash
 # Windows
@@ -23,9 +23,9 @@ sudo mv cloudflared-linux-amd64 /usr/local/bin/cloudflared
 sudo chmod +x /usr/local/bin/cloudflared
 ```
 
-## 🚀 Utilisation
+## 🚀 Usage
 
-### Exemple basique
+### Basic example
 
 ```typescript
 import {
@@ -33,28 +33,28 @@ import {
   closeCloudflareTunnel,
 } from "./tunnel/cloudflare";
 
-// Créer un tunnel vers localhost:3000
+// Create a tunnel to localhost:3000
 const publicUrl = await createCloudflareTunnel({ port: 3000 });
 console.log(publicUrl);
 // → https://abc-def-ghi.trycloudflare.com
 
-// Utiliser l'URL publique...
+// Use the public URL...
 await runTests(publicUrl);
 
-// Fermer le tunnel
+// Close the tunnel
 closeCloudflareTunnel(3000);
 ```
 
-### Résolution automatique
+### Automatic resolution
 
 ```typescript
 import { resolveUrl } from "./tunnel/cloudflare";
 
-// URL locale → crée tunnel automatiquement
+// Local URL → creates a tunnel automatically
 const result1 = await resolveUrl("http://localhost:3000");
 // → { url: 'https://abc.trycloudflare.com', tunnelCreated: true, port: 3000 }
 
-// URL publique → retourne telle quelle
+// Public URL → returned as is
 const result2 = await resolveUrl("https://example.com");
 // → { url: 'https://example.com', tunnelCreated: false }
 ```
@@ -63,15 +63,15 @@ const result2 = await resolveUrl("https://example.com");
 
 ### createCloudflareTunnel(config)
 
-Crée un tunnel Cloudflare vers un port local.
+Creates a Cloudflare tunnel to a local port.
 
-**Paramètres :**
+**Parameters:**
 
-- `port` (number) - Port du serveur local
-- `timeout` (number, optionnel) - Timeout en ms (défaut: 30000)
-- `verbose` (boolean, optionnel) - Logs détaillés (défaut: false)
+- `port` (number) - Local server port
+- `timeout` (number, optional) - Timeout in ms (default: 30000)
+- `verbose` (boolean, optional) - Detailed logs (default: false)
 
-**Retour :** Promise<string> - URL publique du tunnel
+**Returns:** Promise<string> - public URL of the tunnel
 
 ```typescript
 const url = await createCloudflareTunnel({
@@ -83,9 +83,9 @@ const url = await createCloudflareTunnel({
 
 ### closeCloudflareTunnel(port)
 
-Ferme un tunnel actif sur un port spécifique.
+Closes an active tunnel on a specific port.
 
-**Retour :** boolean - true si fermé, false si non trouvé
+**Returns:** boolean - true if closed, false if not found
 
 ```typescript
 const closed = closeCloudflareTunnel(3000);
@@ -93,7 +93,7 @@ const closed = closeCloudflareTunnel(3000);
 
 ### closeAllCloudflareTunnels()
 
-Ferme tous les tunnels actifs.
+Closes all active tunnels.
 
 ```typescript
 closeAllCloudflareTunnels();
@@ -101,9 +101,9 @@ closeAllCloudflareTunnels();
 
 ### isLocalUrl(url)
 
-Vérifie si une URL est locale.
+Checks whether a URL is local.
 
-**Retour :** boolean
+**Returns:** boolean
 
 ```typescript
 isLocalUrl("http://localhost:3000"); // true
@@ -113,9 +113,9 @@ isLocalUrl("https://example.com"); // false
 
 ### resolveUrl(url, config?)
 
-Résout une URL : crée un tunnel si locale, retourne telle quelle sinon.
+Resolves a URL: creates a tunnel if it is local, returns it as is otherwise.
 
-**Retour :** Promise<{ url, tunnelCreated, port?, originalUrl? }>
+**Returns:** Promise<{ url, tunnelCreated, port?, originalUrl? }>
 
 ```typescript
 const result = await resolveUrl("http://localhost:3000");
@@ -127,9 +127,9 @@ if (result.tunnelCreated) {
 
 ### listActiveTunnels()
 
-Liste tous les tunnels actifs.
+Lists all active tunnels.
 
-**Retour :** Map<number, string> - port → URL
+**Returns:** Map<number, string> - port → URL
 
 ```typescript
 const tunnels = listActiveTunnels();
@@ -140,34 +140,34 @@ tunnels.forEach((url, port) => {
 
 ### getTunnelUrl(port)
 
-Obtient l'URL d'un tunnel actif.
+Gets the URL of an active tunnel.
 
-**Retour :** string | null
+**Returns:** string | null
 
 ```typescript
 const url = getTunnelUrl(3000);
 if (url) {
-  console.log(`Tunnel actif: ${url}`);
+  console.log(`Active tunnel: ${url}`);
 }
 ```
 
 ### isTunnelActive(port)
 
-Vérifie si un tunnel est actif sur un port.
+Checks whether a tunnel is active on a port.
 
-**Retour :** boolean
+**Returns:** boolean
 
 ```typescript
 if (isTunnelActive(3000)) {
-  console.log("Tunnel actif sur port 3000");
+  console.log("Tunnel active on port 3000");
 }
 ```
 
 ### checkCloudflareBinary()
 
-Vérifie si cloudflared est installé.
+Checks whether cloudflared is installed.
 
-**Retour :** Promise<boolean>
+**Returns:** Promise<boolean>
 
 ```typescript
 const installed = await checkCloudflareBinary();
@@ -176,59 +176,59 @@ if (!installed) {
 }
 ```
 
-## 🔄 Intégration dans Specto
+## 🔄 Integration in Specto
 
-Le module est intégré dans :
+The module is integrated into:
 
-1. **testGenerator.ts** - Résout automatiquement les URLs locales
-2. **queue.ts** - Gère le cycle de vie (création → test → fermeture)
-3. **routes/tunnels.ts** - API REST de gestion
+1. **testGenerator.ts** - Automatically resolves local URLs
+2. **queue.ts** - Manages the lifecycle (creation → test → closing)
+3. **routes/tunnels.ts** - REST management API
 
-### Workflow automatique
+### Automatic workflow
 
 ```typescript
-// User crée un test avec URL locale
+// The user creates a test with a local URL
 POST /api/tests {
   "url": "http://localhost:3000",
   "prompt": "Test homepage"
 }
 
-// Le worker :
-// 1. Détecte URL locale
-// 2. Crée tunnel automatiquement
-// 3. Génère code avec URL publique
-// 4. Exécute test
-// 5. Ferme tunnel
+// The worker:
+// 1. Detects the local URL
+// 2. Creates a tunnel automatically
+// 3. Generates code with the public URL
+// 4. Runs the test
+// 5. Closes the tunnel
 ```
 
-## 🛡️ Sécurité
+## 🛡️ Security
 
 ### Limitations
 
-⚠️ Les tunnels `trycloudflare.com` sont **publics** :
+⚠️ `trycloudflare.com` tunnels are **public**:
 
-- N'importe qui avec l'URL peut accéder
-- URLs temporaires (quelques heures)
-- Pas d'authentification
+- Anyone with the URL can access it
+- Temporary URLs (a few hours)
+- No authentication
 
-### Bonnes pratiques
+### Best practices
 
-1. Ne jamais exposer de données sensibles
-2. Fermer les tunnels après utilisation
-3. Utiliser `keepTunnelOpen: false` par défaut
-4. Surveiller les tunnels actifs
+1. Never expose sensitive data
+2. Close tunnels after use
+3. Use `keepTunnelOpen: false` by default
+4. Monitor active tunnels
 
 ## 📖 Documentation
 
-- **Guide complet :** `docs/CLOUDFLARE_TUNNEL.md`
-- **Quick start :** `docs/TUNNEL_QUICKSTART.md`
-- **Exemples :** `src/examples/tunnel-examples.ts`
-- **Résumé :** `docs/TUNNEL_INTEGRATION_SUMMARY.md`
+- **Full guide:** `docs/CLOUDFLARE_TUNNEL.md`
+- **Quick start:** `docs/TUNNEL_QUICKSTART.md`
+- **Examples:** `src/examples/tunnel-examples.ts`
+- **Summary:** `docs/TUNNEL_INTEGRATION_SUMMARY.md`
 
 ## 🧪 Tests
 
 ```bash
-# Exécuter les exemples
+# Run the examples
 npx ts-node src/examples/tunnel-examples.ts
 ```
 
@@ -236,23 +236,23 @@ npx ts-node src/examples/tunnel-examples.ts
 
 ### "cloudflared not found"
 
-→ Installer cloudflared (voir Installation ci-dessus)
+→ Install cloudflared (see Installation above)
 
 ### "Tunnel timeout"
 
-→ Vérifier que le serveur local tourne : `curl http://localhost:PORT`
+→ Check that the local server is running: `curl http://localhost:PORT`
 
 ### "Port already in use"
 
-→ Fermer le tunnel : `DELETE /api/tunnels/PORT`
+→ Close the tunnel: `DELETE /api/tunnels/PORT`
 
 ## 📝 Changelog
 
 ### v1.0.0 (2025-10-31)
 
-- ✅ Module initial
-- ✅ Détection automatique URLs locales
-- ✅ Création/fermeture tunnels
-- ✅ Intégration testGenerator + queue
-- ✅ Routes API REST
-- ✅ Documentation complète
+- ✅ Initial module
+- ✅ Automatic local URL detection
+- ✅ Tunnel creation/closing
+- ✅ testGenerator + queue integration
+- ✅ REST API routes
+- ✅ Full documentation

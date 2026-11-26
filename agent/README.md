@@ -2,13 +2,13 @@
 
 ## 📦 Two Tools in One Package
 
-Ce package contient **2 outils distincts** :
+This package contains **2 distinct tools**:
 
-### 1. **Specto Agent** - Tunnel Management (Développement local)
+### 1. **Specto Agent** - Tunnel Management (local development)
 
-Expose votre localhost via cloudflared pour permettre l'exécution de tests E2E à distance.
+Exposes your localhost through cloudflared so E2E tests can run remotely.
 
-**Usage :**
+**Usage:**
 
 ```bash
 specto-agent login --email=user@example.com --password=***
@@ -17,39 +17,39 @@ specto-agent status
 specto-agent stop
 ```
 
-### 2. **Specto CLI** - CI/CD Integration (Tests automatisés)
+### 2. **Specto CLI** - CI/CD Integration (automated tests)
 
-Exécute vos tests E2E et API depuis une configuration déclarative `specto.json`.
+Runs your E2E and API tests from a declarative `specto.json` configuration.
 
-**Usage :**
+**Usage:**
 
 ```bash
-specto-agent init              # Génère specto.json
-specto-agent validate          # Valide la configuration
-specto-agent test              # Lance les tests
-specto-agent test --only=api   # Seulement les tests API
+specto-agent init              # Generates specto.json
+specto-agent validate          # Validates the configuration
+specto-agent test              # Runs the tests
+specto-agent test --only=api   # API tests only
 ```
 
 ---
 
 ## 🚀 Installation
 
-### Option 1 : Installation globale (Recommandé)
+### Option 1: Global installation (recommended)
 
 ```bash
 cd agent
 npm install
 npm run build
-npm link  # Nécessite sudo/admin
+npm link  # Requires sudo/admin
 ```
 
-Ensuite vous pouvez utiliser `specto-agent` depuis n'importe où :
+You can then use `specto-agent` from anywhere:
 
 ```bash
 specto-agent --help
 ```
 
-### Option 2 : Utilisation locale
+### Option 2: Local usage
 
 ```bash
 cd agent
@@ -62,48 +62,48 @@ node bin/specto-agent.js --help
 
 ## 🔧 Agent Commands (Tunnel Management)
 
-### `login` - Authentification
+### `login` - Authentication
 
 ```bash
-# Avec email/password
+# With email/password
 specto-agent login --email=user@example.com --password=***
 
-# Avec token JWT
+# With a JWT token
 specto-agent login --token=eyJhbGciOiJIUzI1NiIs...
 
-# Backend personnalisé
+# Custom backend
 specto-agent login --email=user@example.com --password=*** --backend=http://localhost:4000
 ```
 
-### `start` - Démarrer l'agent
+### `start` - Start the agent
 
 ```bash
-# Mode foreground (par défaut)
+# Foreground mode (default)
 specto-agent start
 
-# Mode daemon (arrière-plan)
+# Daemon mode (background)
 specto-agent start --daemon
 
-# Ports personnalisés
+# Custom ports
 specto-agent start --ports=3000,8080,5173
 
-# Backend personnalisé
+# Custom backend
 specto-agent start --backend=http://localhost:4000
 ```
 
-### `status` - Vérifier l'état
+### `status` - Check the state
 
 ```bash
 specto-agent status
 ```
 
-### `stop` - Arrêter l'agent
+### `stop` - Stop the agent
 
 ```bash
 specto-agent stop
 ```
 
-### `logout` - Déconnexion
+### `logout` - Sign out
 
 ```bash
 specto-agent logout
@@ -113,39 +113,39 @@ specto-agent logout
 
 ## 📝 CLI Commands (CI/CD Integration)
 
-### `init` - Initialiser la configuration
+### `init` - Initialize the configuration
 
 ```bash
-specto-agent init              # Crée specto.json
-specto-agent init --force      # Écrase le fichier existant
+specto-agent init              # Creates specto.json
+specto-agent init --force      # Overwrites the existing file
 ```
 
-### `validate` - Valider la configuration
+### `validate` - Validate the configuration
 
 ```bash
 specto-agent validate
 specto-agent validate --config=custom-config.json
 ```
 
-### `test` - Lancer les tests
+### `test` - Run the tests
 
 ```bash
-# Lancer tous les tests
+# Run all tests
 specto-agent test
 
-# Avec configuration personnalisée
+# With a custom configuration
 specto-agent test --config=custom-config.json
 
-# Environnement spécifique
+# Specific environment
 specto-agent test --env=production
 
-# Seulement les tests E2E
+# E2E tests only
 specto-agent test --only=e2e
 
-# Seulement les tests API
+# API tests only
 specto-agent test --only=api
 
-# Sortie JSON
+# JSON output
 specto-agent test --output=json
 ```
 
@@ -153,7 +153,7 @@ specto-agent test --output=json
 
 ## 📋 Configuration (specto.json)
 
-Structure du fichier de configuration pour le CLI :
+Structure of the CLI configuration file:
 
 ```json
 {
@@ -187,21 +187,21 @@ Structure du fichier de configuration pour le CLI :
 }
 ```
 
-### Variables d'environnement
+### Environment variables
 
-Le CLI supporte la syntaxe `${VAR_NAME}` pour les variables d'environnement :
+The CLI supports the `${VAR_NAME}` syntax for environment variables:
 
 ```bash
-# Définir la clé API
+# Set the API key
 export SPECTO_API_KEY="your-api-key-from-dashboard"
 
-# Ou sur Windows PowerShell
+# Or on Windows PowerShell
 $env:SPECTO_API_KEY="your-api-key-from-dashboard"
 ```
 
 ---
 
-## 🔄 Intégration CI/CD
+## 🔄 CI/CD Integration
 
 ### GitHub Actions
 
@@ -262,77 +262,77 @@ pipeline {
 ```
 agent/
 ├── src/
-│   ├── agent.ts          # Agent tunnel (développement local)
-│   ├── tunnel.ts         # Gestion cloudflared
-│   ├── cli.ts            # Commandes CLI (agent + test)
-│   ├── config.ts         # Configuration agent (auth, backend)
-│   ├── configLoader.ts   # Chargement specto.json
-│   └── index.ts          # Point d'entrée
+│   ├── agent.ts          # Tunnel agent (local development)
+│   ├── tunnel.ts         # cloudflared management
+│   ├── cli.ts            # CLI commands (agent + test)
+│   ├── config.ts         # Agent configuration (auth, backend)
+│   ├── configLoader.ts   # specto.json loading
+│   └── index.ts          # Entry point
 ├── bin/
 │   └── specto-agent.js   # CLI entry point
-├── dist/                 # Code compilé (TypeScript → JavaScript)
+├── dist/                 # Compiled code (TypeScript → JavaScript)
 ├── package.json
 └── tsconfig.json
 ```
 
 ---
 
-## 📚 Documentation complète
+## 📚 Full documentation
 
-- **CI/CD Guide** : `../docs/CLI_CI_CD_GUIDE.md`
-- **API Testing** : `../docs/API_TESTING_COMPLETE.md`
-- **Quick Start** : `../docs/API_TESTING_QUICK_START.md`
+- **CI/CD Guide**: `../docs/CLI_CI_CD_GUIDE.md`
+- **API Testing**: `../docs/API_TESTING_COMPLETE.md`
+- **Quick Start**: `../docs/API_TESTING_QUICK_START.md`
 
 ---
 
-## 🔄 Comment fonctionnent les Tunnels ?
+## 🔄 How do tunnels work?
 
-Quand vous lancez `specto-agent start` :
+When you run `specto-agent start`:
 
-1. **L'agent détecte les serveurs actifs** sur les ports configurés (3000, 8080, 5173 par défaut)
-2. **Crée des tunnels Cloudflare** pour chaque port actif
-3. **Enregistre les tunnels** dans le backend (Redis + Database)
-4. **Les tunnels apparaissent automatiquement** dans le dashboard frontend
-5. **Heartbeat toutes les 30s** pour maintenir les tunnels actifs
-6. **Fermeture automatique** si l'agent arrête le heartbeat (1h timeout)
+1. **The agent detects active servers** on the configured ports (3000, 8080, 5173 by default)
+2. **Creates Cloudflare tunnels** for each active port
+3. **Registers the tunnels** in the backend (Redis + Database)
+4. **The tunnels appear automatically** in the frontend dashboard
+5. **Heartbeat every 30s** to keep the tunnels alive
+6. **Automatic shutdown** if the agent stops sending heartbeats (1h timeout)
 
-### Synchronisation Redis ↔ Database
+### Redis ↔ Database synchronization
 
-- **Redis** : Cache rapide pour les heartbeats agent (TTL 1h)
-- **Database** : Persistance pour l'affichage frontend + historique
-- Les deux sont synchronisés automatiquement à chaque `register`
+- **Redis**: fast cache for agent heartbeats (1h TTL)
+- **Database**: persistence for frontend display + history
+- Both are synchronized automatically on every `register`
 
 ---
 
 ## 🆘 Troubleshooting
 
-### Agent ne démarre pas
+### The agent does not start
 
-1. Vérifier que cloudflared est installé : `cloudflared --version`
-2. Vérifier l'authentification : `specto-agent status`
-3. Vérifier le backend : `curl http://localhost:4000/api/health`
+1. Check that cloudflared is installed: `cloudflared --version`
+2. Check authentication: `specto-agent status`
+3. Check the backend: `curl http://localhost:4000/api/health`
 
-### Tunnels n'apparaissent pas dans le frontend
+### Tunnels do not appear in the frontend
 
-1. Vérifier que l'agent est bien démarré : `specto-agent status`
-2. Vérifier les logs backend (doit afficher "Registered X tunnel(s)")
-3. Rafraîchir le dashboard frontend (auto-refresh toutes les 5s)
-4. Vérifier que Redis est actif : `redis-cli ping` (doit retourner `PONG`)
+1. Check that the agent is started: `specto-agent status`
+2. Check the backend logs (should show "Registered X tunnel(s)")
+3. Refresh the frontend dashboard (auto-refresh every 5s)
+4. Check that Redis is running: `redis-cli ping` (should return `PONG`)
 
-### Tests CLI échouent
+### CLI tests fail
 
-1. Vérifier la configuration : `specto-agent validate`
-2. Vérifier la clé API : `echo $SPECTO_API_KEY`
-3. Vérifier le project ID dans `specto.json`
-4. Vérifier les IDs des tests : `GET /api/cli/tests?projectId=xxx`
+1. Check the configuration: `specto-agent validate`
+2. Check the API key: `echo $SPECTO_API_KEY`
+3. Check the project ID in `specto.json`
+4. Check the test IDs: `GET /api/cli/tests?projectId=xxx`
 
 ---
 
-## 🔗 Liens utiles
+## 🔗 Useful links
 
-- Backend API : http://localhost:4000
-- Frontend Dashboard : http://localhost:3000
-- Cloudflared : https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/
+- Backend API: http://localhost:4000
+- Frontend Dashboard: http://localhost:3000
+- Cloudflared: https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/
 
 ---
 
@@ -342,11 +342,11 @@ Quand vous lancez `specto-agent start` :
 # Build
 npm run build
 
-# Publish to npm (si nécessaire)
+# Publish to npm (if needed)
 npm version patch
 npm publish
 
-# Ou lien local
+# Or local link
 npm link
 ```
 

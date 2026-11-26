@@ -1,6 +1,6 @@
 # Specto
 
-**Plateforme de tests automatisés pilotée par l'IA.** Décrivez un scénario en langage naturel : Specto génère le test, l'exécute dans une file d'attente, stocke les captures et les métriques, et propose une correction automatique quand il échoue.
+**AI-driven test automation platform.** Describe a scenario in plain language: Specto generates the test, runs it through a queue, stores screenshots and metrics, and suggests an automatic fix when it fails.
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6)
 ![Next.js](https://img.shields.io/badge/Next.js-14-black)
@@ -8,53 +8,53 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-## Fonctionnalités
+## Features
 
-| Type de test        | Exécution                         | Génération IA |
+| Test type           | Execution                         | AI generation |
 | ------------------- | --------------------------------- | ------------- |
-| E2E (interface)     | Playwright / Chromium             | ✅            |
-| API REST            | Axios, assertions JSON / headers  | ✅ (+ import cURL) |
-| Smoke               | Vérifications rapides de disponibilité | ✅       |
-| Unitaires           | Jest / Vitest                     | ✅            |
+| E2E (UI)            | Playwright / Chromium             | ✅            |
+| REST API            | Axios, JSON / headers assertions  | ✅ (+ cURL import) |
+| Smoke               | Quick availability checks         | ✅            |
+| Unit                | Jest / Vitest                     | ✅            |
 | Performance         | k6                                | ✅            |
-| Sécurité            | Analyse de vulnérabilités         | ✅            |
+| Security            | Vulnerability scanning            | ✅            |
 
-Autour de l'exécution :
+Around execution:
 
-- **Auto-healing** : quand un test échoue, l'IA analyse l'erreur (sélecteur, timeout, assertion…) et propose un code corrigé, avec l'historique des tentatives.
-- **Détection des tests instables** : score de fiabilité par test et recommandations pour les stabiliser.
-- **Retry** avec délai exponentiel, **planification** des exécutions (cron) et **notifications**.
-- **Projets et équipes** : comptes, membres, clés d'API, connexion OAuth (Google, GitHub).
-- **Agent & CLI** (`specto-agent`) : tunnel vers une application locale pendant le développement, et lancement des tests depuis une pipeline CI/CD.
+- **Auto-healing**: when a test fails, the AI analyzes the error (selector, timeout, assertion…) and proposes fixed code, with the history of attempts.
+- **Flaky test detection**: a reliability score per test and recommendations to stabilize them.
+- **Retry** with exponential backoff, **scheduled** runs (cron) and **notifications**.
+- **Projects and teams**: accounts, members, API keys, OAuth sign-in (Google, GitHub).
+- **Agent & CLI** (`specto-agent`): a tunnel to a local application during development, and running tests from a CI/CD pipeline.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    UI[Frontend Next.js] -->|REST| API[Backend Express]
+    UI[Next.js frontend] -->|REST| API[Express backend]
     CLI[specto-agent / CLI] -->|REST + tunnel| API
     API --> DB[(PostgreSQL / Prisma)]
     API --> Q[[BullMQ / Redis]]
-    Q --> W[Runners : Playwright, k6, API, unitaires, sécurité]
-    W --> S3[(MinIO / S3 : captures, rapports)]
-    API --> LLM[OpenAI : génération et correction]
+    Q --> W[Runners: Playwright, k6, API, unit, security]
+    W --> S3[(MinIO / S3: screenshots, reports)]
+    API --> LLM[OpenAI: generation and fixing]
 ```
 
 ## Stack
 
-- **Frontend** : Next.js 14 (App Router), React, TypeScript, Tailwind CSS
-- **Backend** : Node.js, Express, TypeScript, Prisma (28 modèles), Passport (OAuth)
-- **Exécution** : BullMQ + Redis, Playwright, k6
-- **Stockage** : PostgreSQL 16, MinIO (compatible S3)
-- **IA** : API OpenAI (génération de tests, auto-healing, analyse de prompts)
-- **Infra** : Docker Compose (6 services), GitHub Actions
+- **Frontend**: Next.js 14 (App Router), React, TypeScript, Tailwind CSS
+- **Backend**: Node.js, Express, TypeScript, Prisma (28 models), Passport (OAuth)
+- **Execution**: BullMQ + Redis, Playwright, k6
+- **Storage**: PostgreSQL 16, MinIO (S3-compatible)
+- **AI**: OpenAI API (test generation, auto-healing, prompt analysis)
+- **Infra**: Docker Compose (6 services), GitHub Actions
 
-## Démarrage rapide
+## Quick start
 
-### Avec Docker (recommandé)
+### With Docker (recommended)
 
 ```bash
-cp .env.example .env      # renseignez au minimum OPENAI_API_KEY et les mots de passe
+cp .env.example .env      # set at least OPENAI_API_KEY and the passwords
 docker compose up -d
 ```
 
@@ -63,11 +63,11 @@ docker compose up -d
 | Frontend       | http://localhost:3000        |
 | API            | http://localhost:4000        |
 | Health check   | http://localhost:4000/health |
-| Console MinIO  | http://localhost:9001        |
+| MinIO console  | http://localhost:9001        |
 
-### En local
+### Locally
 
-Prérequis : Node.js 18+, PostgreSQL et Redis (par exemple via `docker compose up -d postgres redis minio`).
+Requirements: Node.js 18+, PostgreSQL and Redis (for example via `docker compose up -d postgres redis minio`).
 
 ```bash
 npm install
@@ -81,35 +81,35 @@ npm run dev               # frontend :3000 + backend :4000
 
 ```bash
 cd agent && npm install && npm run build && npm link
-specto-agent login --email=vous@example.com --password=***
-specto-agent init         # génère specto.json
-specto-agent test         # lance les tests du projet (utilisable en CI)
+specto-agent login --email=you@example.com --password=***
+specto-agent init         # generates specto.json
+specto-agent test         # runs the project's tests (usable in CI)
 ```
 
-Le dossier [`test-site/`](test-site/) contient une petite application de démonstration sur laquelle lancer les tests.
+The [`test-site/`](test-site/) folder contains a small demo application to run the tests against.
 
 ## Structure
 
 ```
 specto/
 ├── apps/
-│   ├── backend/     API Express : routes, runners, services IA, file BullMQ, schéma Prisma
-│   └── frontend/    Interface Next.js : tableaux de bord, création et historique des tests
-├── agent/           Agent de tunnel + CLI CI/CD (specto-agent)
-├── test-site/       Application de démonstration
+│   ├── backend/     Express API: routes, runners, AI services, BullMQ queue, Prisma schema
+│   └── frontend/    Next.js interface: dashboards, test creation and history
+├── agent/           Tunnel agent + CI/CD CLI (specto-agent)
+├── test-site/       Demo application
 └── docker-compose.yml
 ```
 
 ## Scripts
 
-| Commande             | Rôle                                   |
+| Command              | Purpose                                |
 | -------------------- | -------------------------------------- |
-| `npm run dev`        | Frontend et backend en mode watch      |
-| `npm run build`      | Build de production des deux apps      |
-| `npm run type-check` | Vérification TypeScript                |
+| `npm run dev`        | Frontend and backend in watch mode     |
+| `npm run build`      | Production build of both apps          |
+| `npm run type-check` | TypeScript check                       |
 | `npm run lint`       | Lint                                   |
-| `npm test`           | Tests du backend                       |
+| `npm test`           | Backend tests                          |
 
-## Licence
+## License
 
 [MIT](LICENSE) © Adlane Hamzaoui
